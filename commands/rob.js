@@ -105,7 +105,7 @@ const createBar = (current, max = 100) => {
 };
 
 
-module.exports = async (command, args, msg, user, db) => {
+module.exports = async (command, args, msg, user, db, sock) => {
     const now = Date.now();
 
     // =================================================================
@@ -414,16 +414,59 @@ module.exports = async (command, args, msg, user, db) => {
 
     // 7. TOP GLOBAL
     if (command === 'top' || command === 'leaderboard') {
-        const sorted = Object.entries(db.users)
-            .map(([id, d]) => ({ id, netWorth: (d.bank||0) + (d.balance||0) }))
-            .sort((a, b) => b.netWorth - a.netWorth)
-            .slice(0, 10);
+        // 1. Cek apakah di Grup
+        const chatId = msg.from || msg.key.remoteJid;
+        if (!chatId.endsWith('@g.us')) return msg.reply("❌ Fitur ini hanya untuk Grup!");
 
-        let txt = `🏆 *TOP 10 SULTAN* 🏆\n\n`;
+        // 2. Ambil Data Anggota Grup (Perlu sock)
+        let groupMetadata;
+        try {
+            groupMetadata = await sock.groupMetadata(chatId);
+        } catch (e) {
+            return msg.reply("⚠️ Gagal mengambil data grup. Bot harus admin atau koneksi stabil.");
+        }
+
+        const memberIds = groupMetadata.participants.map(p => p.id);
+
+        // 3. Filter Database (Hanya User yang ada di Grup ini)
+        const sorted = Object.entries(db.users)
+            .filter(([id, data]) => memberIds.includes(id)) // Filter: ID harus ada di memberIds
+            .map(([id, data]) => ({
+                id,
+                name: data.name || id.split('@')[0], // Pakai Nama, kalau gak ada pakai nomor
+                job: data.job || "Pengangguran",     // Ambil Job (kalau ada fitur job)
+                netWorth: (data.bank || 0) + (data.balance || 0)
+            }))
+            .sort((a, b) => b.netWorth - a.netWorth) // Urutkan dari terkaya
+            .slice(0, 10); // Ambil 10 teratas
+
+        // 4. Render Teks Cantik (Sesuai Gambar)
+        let txt = `🏆 *TOP SULTAN (GRUP)* 🏆\n(Total Aset Lengkap - Hutang)\n${"―".repeat(25)}\n\n`;
+        
         sorted.forEach((u, i) => {
-            txt += `${i+1}. @${u.id.split('@')[0]} - 💰${u.netWorth.toLocaleString()}\n`;
+            let medal = '';
+            if (i === 0) medal = '🥇';
+            else if (i === 1) medal = '🥈';
+            else if (i === 2) medal = '🥉';
+            else medal = `${i + 1}.`;
+
+            // Format Uang biar ada titiknya (Rp 10.000.000)
+            let formattedMoney = u.netWorth.toLocaleString('id-ID');
+
+            txt += `${medal} @${u.name}\n`;
+            txt += `   └ 💼 ${u.job} | 💎 Rp ${formattedMoney}\n`;
         });
-        return msg.reply(txt, null, { mentions: sorted.map(u => u.id) });
+
+        // Cek Posisi Sendiri
+        const myRank = sorted.findIndex(x => x.id === (msg.author || msg.key.participant));
+        if (myRank !== -1) {
+            txt += `\n${"―".repeat(25)}\n👤 *Posisi Kamu: #${myRank + 1}*`;
+        } else {
+            txt += `\n${"―".repeat(25)}\n👤 *Kamu belum masuk Top 10*`;
+        }
+
+        // Kirim (tanpa mention satu-satu biar gak spam notif, cukup teks nama saja)
+        return msg.reply(txt);
     }
 
     // =================================================================
@@ -472,4 +515,5 @@ module.exports = async (command, args, msg, user, db) => {
         }
     }
 };
+
 
