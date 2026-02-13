@@ -486,46 +486,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
         // Kirim
         return msg.reply(txt);
     }
-        // 3. Filter Database (Hanya User yang ada di Grup ini)
-        const sorted = Object.entries(db.users)
-            .filter(([id, data]) => memberIds.includes(id)) // Filter: ID harus ada di memberIds
-            .map(([id, data]) => ({
-                id,
-                name: data.name || id.split('@')[0], // Pakai Nama, kalau gak ada pakai nomor
-                job: data.job || "Pengangguran",     // Ambil Job (kalau ada fitur job)
-                netWorth: (data.bank || 0) + (data.balance || 0)
-            }))
-            .sort((a, b) => b.netWorth - a.netWorth) // Urutkan dari terkaya
-            .slice(0, 10); // Ambil 10 teratas
-
-        // 4. Render Teks Cantik (Sesuai Gambar)
-        let txt = `🏆 *TOP SULTAN (GRUP)* 🏆\n(Total Aset Lengkap - Hutang)\n${"―".repeat(25)}\n\n`;
-        
-        sorted.forEach((u, i) => {
-            let medal = '';
-            if (i === 0) medal = '🥇';
-            else if (i === 1) medal = '🥈';
-            else if (i === 2) medal = '🥉';
-            else medal = `${i + 1}.`;
-
-            // Format Uang biar ada titiknya (Rp 10.000.000)
-            let formattedMoney = u.netWorth.toLocaleString('id-ID');
-
-            txt += `${medal} @${u.name}\n`;
-            txt += `   └ 💼 ${u.job} | 💎 Rp ${formattedMoney}\n`;
-        });
-
-        // Cek Posisi Sendiri
-        const myRank = sorted.findIndex(x => x.id === (msg.author || msg.key.participant));
-        if (myRank !== -1) {
-            txt += `\n${"―".repeat(25)}\n👤 *Posisi Kamu: #${myRank + 1}*`;
-        } else {
-            txt += `\n${"―".repeat(25)}\n👤 *Kamu belum masuk Top 10*`;
-        }
-
-        // Kirim (tanpa mention satu-satu biar gak spam notif, cukup teks nama saja)
-        return msg.reply(txt);
-    }
 
     // =================================================================
     // D. CRIME COMMAND (Rob)
@@ -574,6 +534,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
