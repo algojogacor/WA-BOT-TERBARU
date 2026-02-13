@@ -263,6 +263,7 @@ module.exports = async (command, args, msg, user, db, sock) => {
         const status = profit >= 0 ? '🟢 Cuan' : '🔴 Boncos';
 
         user.balance += net;
+        user.dailyIncome = (user.dailyIncome || 0) + net;
         p.qty -= qty;
         if (p.qty === 0) delete user.portfolio[ticker];
 
@@ -324,6 +325,7 @@ module.exports = async (command, args, msg, user, db, sock) => {
 
         const amount = Math.floor(totalAsset * 0.01);
         user.balance += amount;
+        user.dailyIncome = (user.dailyIncome || 0) + amount;
         user.lastDividend = now;
         saveDB(db);
 
