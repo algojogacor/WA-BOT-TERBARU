@@ -93,6 +93,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         // Cairkan Dana
         user.balance += totalWin;
+        user.dailyIncome = (user.dailyIncome || 0) + totalWin;
         user.xp = (user.xp || 0) + 500;
         
         // Bersihkan data taruhan & Update history
