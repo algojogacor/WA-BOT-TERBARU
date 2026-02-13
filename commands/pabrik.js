@@ -408,6 +408,7 @@ module.exports = async (command, args, msg, user, db, sock) => {
          const total = Math.floor(qty * price * (1 - GLOBAL.taxRate));
 
          user.balance += total;
+        user.dailyIncome = (user.dailyIncome || 0) + total;
          factory.inventory[code] = 0;
          saveDB(db);
 
