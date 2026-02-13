@@ -104,6 +104,7 @@ module.exports = async (command, args, msg, user, db) => {
         const finalPrize = prize - tax;
 
         user.balance += finalPrize;
+        user.dailyIncome = (user.dailyIncome || 0) + finalPrize;
         saveDB(db);
 
         txt += `🎉 *JACKPOT!!* Tebakanmu benar!\n`;
