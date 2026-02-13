@@ -183,6 +183,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         user.forex[code] -= qty;
         user.balance += totalReceive;
+        user.dailyIncome = (user.dailyIncome || 0) + totalReceive;
 
         saveDB(db);
         const unit = code === 'emas' ? 'gram' : (code === 'jpy' ? 'yen' : 'lembar');
