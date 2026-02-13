@@ -415,7 +415,14 @@ async function startBot() {
             if (user.quest?.lastReset !== today) {
                 user.quest.daily.forEach(q => { q.progress = 0; q.claimed = false; });
                 user.quest.lastReset = today;
+
+                // --- TAMBAHAN BARU: RESET HARIAN ---
+                user.dailyIncome = 0; // Reset pendapatan harian jadi 0
+                user.dailyUsage = 0;  // Reset limit transfer harian jadi 0
+                // -----------------------------------
             }
+            // Pastikan variabel ada (Init)
+            if (typeof user.dailyIncome === 'undefined') user.dailyIncome = 0;
             if (user.buffs) {
                 for (let key in user.buffs) {
                     if (user.buffs[key].active && Date.now() >= user.buffs[key].until) user.buffs[key].active = false;
@@ -829,6 +836,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
