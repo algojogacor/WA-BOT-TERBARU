@@ -35,11 +35,8 @@ const KONFIG = {
 // 2. HELPER: UPDATE STATUS
 // =================================================================
 const updateLife = (user, db, now) => {
-    // Init Data Baru
+    // Init data jika belum ada
     if (typeof user.isSleeping === 'undefined') user.isSleeping = false;
-    if (typeof user.sleepEndTime === 'undefined') user.sleepEndTime = 0;
-    
-    // Init Data Lama (Biarkan/Pastikan ada)
     if (typeof user.hp === 'undefined') user.hp = 100;
     if (typeof user.hunger === 'undefined') user.hunger = 100;
     if (typeof user.energy === 'undefined') user.energy = 100;
@@ -51,47 +48,42 @@ const updateLife = (user, db, now) => {
     }
     if (user.isDead) return;
 
+    // MENGGUNAKAN MILIDETIK AGAR PRESISI (Bukan Math.floor menit)
     const diffMs = now - user.lastLifeUpdate;
-    const diffMinutes = Math.floor(diffMs / 60000);
+    const diffMinutes = diffMs / 60000; // Biarkan desimal (misal 10.5 menit)
 
     if (diffMinutes > 0) {
-        // --- LOGIKA BARU: TIDUR VS BANGUN ---
         if (user.isSleeping) {
-            // Kalau Tidur: Energi nambah, Lapar irit banget
+            // Energi nambah secara halus
             user.energy += diffMinutes * KONFIG.SLEEP_REGEN_ENERGI;
             user.hunger -= diffMinutes * KONFIG.SLEEP_DECAY_LAPAR;
 
-            // Cek apakah durasi tidur sudah habis?
             if (now >= user.sleepEndTime) {
-                user.isSleeping = false; // Bangun otomatis
+                user.isSleeping = false;
                 user.sleepEndTime = 0;
             }
         } else {
-            // Kalau Bangun: Normal decay
             user.hunger -= diffMinutes * KONFIG.DECAY_LAPAR;
             user.energy -= diffMinutes * KONFIG.DECAY_ENERGI;
         }
-        // -------------------------------------
 
         // Batas Atas & Bawah
-        if (user.energy > 100) user.energy = 100;
-        if (user.energy < 0) user.energy = 0;
-        if (user.hunger < 0) user.hunger = 0;
+        user.energy = Math.max(0, Math.min(100, user.energy));
+        user.hunger = Math.max(0, Math.min(100, user.hunger));
 
-        // Konsekuensi Lapar
         if (user.hunger === 0) {
             user.hp -= KONFIG.DECAY_HP * diffMinutes; 
         }
 
-        // Cek Mati
         if (user.hp <= 0) {
             user.hp = 0;
             user.isDead = true;
-            user.isSleeping = false; // Paksa bangun kalau mati
+            user.isSleeping = false;
             const denda = Math.floor(user.balance * KONFIG.DENDA_MATI);
             user.balance -= denda;
         }
 
+        // Update waktu terakhir
         user.lastLifeUpdate = now;
     }
 };
@@ -122,9 +114,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
     if (!db.settings) db.settings = { lifeSystem: true };
 
     // --- JALANKAN UPDATE KEHIDUPAN ---
-    updateLife(user, db, now);
-    saveDB(db); 
-    
     updateLife(user, db, now);
     saveDB(db); 
 
@@ -537,6 +526,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
