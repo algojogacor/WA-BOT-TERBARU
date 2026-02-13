@@ -497,7 +497,7 @@ async function startBot() {
             await duelCmd(command, args, msg, user, db).catch(e => console.error("Error Duel:", e.message));
             await bolaCmd(command, args, msg, user, db, sender).catch(e => console.error("Error Bola:", e.message));
             await nationCmd(command, args, msg, user, db).catch(e => console.error("Error Nation:", e.message));
-            await robCmd(command, args, msg, user, db).catch(e => console.error("Error Rob:", e.message));
+            await robCmd(command, args, msg, user, db, sock).catch(e => console.error("Error Rob:", e.message));
             await valasCmd(command, args, msg, user, db).catch(e => console.error("Error Valas:", e.message));
             await farmingCmd(command, args, msg, user, db).catch(e => console.error("Error Farming:", e.message));
             await jobsCmd(command, args, msg, user, db).catch(e => console.error("Error Jobs:", e.message));
@@ -829,6 +829,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
