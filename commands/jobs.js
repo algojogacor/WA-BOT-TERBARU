@@ -121,6 +121,7 @@ module.exports = async (command, args, msg, user, db) => {
         }
 
         user.balance += job.salary;
+        user.dailyIncome = (user.dailyIncome || 0) + job.salary;
         user.lastWork = now;
         user.xp += 50; 
         
@@ -169,6 +170,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (user.job === 'polisi') {
             const bonus = 5000000 + Math.floor(Math.random() * 5000000); // 5jt - 10jt
             user.balance += bonus;
+            user.dailyIncome = (user.dailyIncome || 0) + bonus;
             user.lastSkill = now;
             saveDB(db);
             return msg.reply(`👮 *SKILL POLISI AKTIF!*\nKamu menggerebek markas maling!\n💰 Barang sitaan: Rp ${fmt(bonus)} masuk ke dompetmu.`);
