@@ -174,6 +174,7 @@ module.exports = async (command, args, msg, user, db) => {
         
         if (collected > 0) {
             user.balance += collected;
+            user.dailyIncome = (user.dailyIncome || 0) + collected;
             msg.reply(`💰 Mengambil uang di brankas dulu: Rp ${collected.toLocaleString('id-ID')}`);
         }
 
@@ -211,6 +212,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (totalRevenue <= 0) return msg.reply("❌ Kasir masih kosong.");
 
         user.balance += totalRevenue;
+        user.dailyIncome = (user.dailyIncome || 0) + totalRevenue;
         user.business.lastCollect = now; 
         saveDB(db);
 
