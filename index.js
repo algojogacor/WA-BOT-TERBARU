@@ -301,6 +301,11 @@ async function startBot() {
                     debt: 0,
                     xp: 0,
                     level: 1,
+                    hp: 100,
+    hunger: 100,
+    energy: 100,
+    lastLifeUpdate: Date.now(),
+    isDead: false,
 
                     // --- FITUR LAMA (RPG/Gacha) ---
                     inv: [],
@@ -355,6 +360,52 @@ async function startBot() {
             // 4. Profesi & Kriminal
             if (!user.job) user.job = null;
             if (!user.lastWork) user.lastWork = 0;
+
+            // 5. SISTEM KEHIDUPAN (AUTO DECAY)
+            const now = Date.now();
+            
+            // Init jika user lama belum punya status
+            if (typeof user.hp === 'undefined') user.hp = 100;
+            if (typeof user.hunger === 'undefined') user.hunger = 100;
+            if (typeof user.energy === 'undefined') user.energy = 100;
+            if (typeof user.lastLifeUpdate === 'undefined') user.lastLifeUpdate = now;
+            if (typeof user.isDead === 'undefined') user.isDead = false;
+
+            // Cek Setting Admin (Jika admin matikan status, skip)
+            if (db.settings && db.settings.lifeSystem !== false && !user.isDead) {
+                const diffMs = now - user.lastLifeUpdate;
+                const diffMinutes = Math.floor(diffMs / 60000); // Hitung selisih menit
+
+                if (diffMinutes > 0) {
+                    // KONFIGURASI PENGURANGAN (Samakan dengan economy.js)
+                    const DECAY_LAPAR = 2;   // -2% per menit
+                    const DECAY_ENERGI = 1;  // -1% per menit
+                    const DECAY_HP = 5;      // -5% per menit (jika kelaparan)
+
+                    user.hunger -= diffMinutes * DECAY_LAPAR;
+                    user.energy -= diffMinutes * DECAY_ENERGI;
+
+                    // Batas Min 0
+                    if (user.hunger < 0) user.hunger = 0;
+                    if (user.energy < 0) user.energy = 0;
+
+                    // Jika Lapar 0, Darah berkurang
+                    if (user.hunger === 0) {
+                        user.hp -= diffMinutes * DECAY_HP;
+                    }
+
+                    // Cek Kematian
+                    if (user.hp <= 0) {
+                        user.hp = 0;
+                        user.isDead = true;
+                        // Denda mati (20%)
+                        user.balance = Math.floor(user.balance * 0.8);
+                        chat.sendMessage(`💀 *@${sender.split('@')[0]} MATI KELAPARAN/SAKIT!*\nSaldo dipotong 20% untuk biaya pemakaman.\nKetik !rs untuk hidup kembali.`);
+                    }
+                    
+                    user.lastLifeUpdate = now; // Simpan waktu terakhir interaksi
+                }
+            }
 
             // ANTI TOXIC
             const toxicWords = ["anjing", "kontol", "memek", "goblok", "idiot", "babi", "tolol", "ppq", "jembut"];
@@ -763,5 +814,6 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
