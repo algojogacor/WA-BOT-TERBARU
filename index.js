@@ -648,14 +648,15 @@ async function startBot() {
 • !rob @user (Butuh Energi, Denda 10%)
 • !top : Leaderboard Orang Terkaya
 
-❤️ *LIFE & SURVIVAL (BARU)*
-_Jaga status atau denda 20% Saldo!_
-• !me : Cek Darah, Lapar & Energi
-• !makan : Makan Mewah (Bayar 50 Juta)
-• !tidur : Isi Energi (Gratis, CD 10m)
-• !rs : Hidupkan lagi (Bayar 500 Juta)
-• !matistatus : Bekukan Status (Mode AFK)
-• !nyalastatus : Aktifkan Status Kembali
+❤️ *LIFE & SURVIVAL*
+_Jaga nyawa! Mati = Saldo lenyap 20%_
+• !me : Cek HP, Lapar & Energi
+• !makan : Bayar 50 Juta
+• !tidur <jam> : Tidur 1-10 jam (Isi Energi)
+• !bangun : Bangun paksa sebelum waktu habis
+• !rs : Berobat (Bayar 500 Juta)
+• !matistatus : Mode AFK (Anti Mati)
+• !nyalastatus : Aktifkan status kembali
 
 🚀 *CRYPTO & MINING*
 • !market | !pf | !topcrypto
@@ -828,6 +829,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
