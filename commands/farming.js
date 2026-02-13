@@ -371,6 +371,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         const total = hargaJual * qty;
         user.balance += total;
+        user.dailyIncome = (user.dailyIncome || 0) + total;
         user.farm.inventory[item] -= qty;
         if (user.farm.inventory[item] === 0) delete user.farm.inventory[item];
         
