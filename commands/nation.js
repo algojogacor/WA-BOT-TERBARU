@@ -203,6 +203,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         nation.treasury -= amount;
         user.balance += amount;
+        user.dailyIncome = (user.dailyIncome || 0) + amount;
 
         const drop = Math.floor(Math.random() * 10) + 5; 
         nation.stability -= drop;
