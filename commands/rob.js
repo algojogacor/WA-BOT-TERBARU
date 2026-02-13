@@ -5,19 +5,19 @@ const { saveDB } = require('../helpers/database');
 // =================================================================
 const KONFIG = {
     // LIFE DECAY (Pengurangan Status)
-    // 100% / 240 menit = ~0.41
-    DECAY_LAPAR: 0.3,       // Habis dalam 4 jam 10 menit
-    DECAY_ENERGI: 0.4,      // Habis dalam 3 jam 20 menit (sedikit lebih cepat dari lapar)
-    DECAY_HP: 1,            // Darah berkurang 1% per menit jika kelaparan (Waktu 100 menit)
+    // 100% / 960 menit = ~0.1
+    DECAY_LAPAR: 0.1,        // Habis dalam 16 Jam (Manusiawi)
+    DECAY_ENERGI: 0.09,      // Habis dalam 18.5 Jam (Waktu bangun normal)
+    DECAY_HP: 0.1,           // Darah berkurang sangat pelan jika lapar (1000 menit untuk mati)
     
     // MODIFIKASI SAAT TIDUR
-    SLEEP_REGEN_ENERGI: 0.7,  // Isi energi 0-100 butuh ~2.3 jam tidur
-    SLEEP_DECAY_LAPAR: 0.05,  // Tidur jadi sangat awet (bisa tahan 30 jam lebih)
+    SLEEP_REGEN_ENERGI: 0.6, 
+    SLEEP_DECAY_LAPAR: 0.02,  // Saat tidur metabolisme lambat (Bisa tahan 3-4 hari)
     
     // HARGA & DENDA (Tetap Sultan)
     BIAYA_MAKAN: 50000000,       
     BIAYA_RS: 500000000,         
-    DENDA_MATI: 0.2,             
+    DENDA_MATI: 0.2,           
     
     // LIMIT & PAJAK EKONOMI
     LIMIT_HARIAN: 10000000000,   
@@ -526,6 +526,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
