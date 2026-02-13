@@ -1,7 +1,7 @@
 const { saveDB } = require('../helpers/database');
 
 // =================================================================
-// 1. KONFIGURASI Kehidupan
+// 1. KONFIGURASI KEHIDUPAN
 // =================================================================
 const KONFIG = {
     // LIFE DECAY (Pengurangan Status)
@@ -526,6 +526,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
