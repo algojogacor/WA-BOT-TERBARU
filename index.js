@@ -640,8 +640,22 @@ async function startBot() {
 • !migrasi @akun_asli (Gabung Akun)
 
 🏦 *BANK & KRIMINAL*
-• !bank | !depo <jml> | !tarik <jml>
-• !rob @user (Maling Dompet)
+• !bank : Cek Saldo, Utang & Limit
+• !depo <jml> | !tarik <jml>
+• !tf @user <jml> (Pajak 5%, Limit 10M)
+• !pinjam <jml> (Max 5M, Bunga 20%)
+• !bayar <jml> (Lunasi Utang)
+• !rob @user (Butuh Energi, Denda 10%)
+• !top : Leaderboard Orang Terkaya
+
+❤️ *LIFE & SURVIVAL (BARU)*
+_Jaga status atau denda 20% Saldo!_
+• !me : Cek Darah, Lapar & Energi
+• !makan : Makan Mewah (Bayar 50 Juta)
+• !tidur : Isi Energi (Gratis, CD 10m)
+• !rs : Hidupkan lagi (Bayar 500 Juta)
+• !matistatus : Bekukan Status (Mode AFK)
+• !nyalastatus : Aktifkan Status Kembali
 
 🚀 *CRYPTO & MINING*
 • !market | !pf | !topcrypto
@@ -814,6 +828,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
