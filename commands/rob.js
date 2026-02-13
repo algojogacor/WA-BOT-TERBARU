@@ -5,9 +5,11 @@ const { saveDB } = require('../helpers/database');
 // =================================================================
 const KONFIG = {
     // LIFE DECAY (Pengurangan Status)
-    DECAY_LAPAR: 2,       // Berkurang 2% per menit
-    DECAY_ENERGI: 1,      // Berkurang 1% per menit
+    DECAY_LAPAR: 1,       // Berkurang 1% per menit
+    DECAY_ENERGI: 2,      // Berkurang 1% per menit
     DECAY_HP: 5,          // Darah berkurang 5% per menit jika kelaparan
+    SLEEP_REGEN_ENERGI: 1.5,  // Nambah 1.5% energi per menit
+    SLEEP_DECAY_LAPAR: 0.1,   // Lapar cuma turun 0.1% per menit (Sangat Hemat)
     
     // HARGA & DENDA (High Stakes)
     BIAYA_MAKAN: 50000000,       // 50 Juta (Sekali Makan)
@@ -30,51 +32,64 @@ const KONFIG = {
 // 2. HELPER: UPDATE STATUS (LOGIKA JANTUNG BOT)
 // =================================================================
 const updateLife = (user, db, now) => {
-    // Init status jika belum ada
+    // Init Data Baru
+    if (typeof user.isSleeping === 'undefined') user.isSleeping = false;
+    if (typeof user.sleepEndTime === 'undefined') user.sleepEndTime = 0;
+    
+    // Init Data Lama (Biarkan/Pastikan ada)
     if (typeof user.hp === 'undefined') user.hp = 100;
     if (typeof user.hunger === 'undefined') user.hunger = 100;
     if (typeof user.energy === 'undefined') user.energy = 100;
     if (typeof user.lastLifeUpdate === 'undefined') user.lastLifeUpdate = now;
     if (typeof user.isDead === 'undefined') user.isDead = false;
 
-    // Cek apakah Admin mematikan fitur status (Mode Tidur)
     if (db.settings && db.settings.lifeSystem === false) {
-        user.lastLifeUpdate = now; 
-        return;
+        user.lastLifeUpdate = now; return;
     }
-
-    // Jika mati, gak usah hitung
     if (user.isDead) return;
 
-    // Hitung durasi (dalam menit) sejak interaksi terakhir
     const diffMs = now - user.lastLifeUpdate;
     const diffMinutes = Math.floor(diffMs / 60000);
 
     if (diffMinutes > 0) {
-        // 1. Kurangi Lapar & Tenaga
-        user.hunger -= diffMinutes * KONFIG.DECAY_LAPAR;
-        user.energy -= diffMinutes * KONFIG.DECAY_ENERGI;
+        // --- LOGIKA BARU: TIDUR VS BANGUN ---
+        if (user.isSleeping) {
+            // Kalau Tidur: Energi nambah, Lapar irit banget
+            user.energy += diffMinutes * KONFIG.SLEEP_REGEN_ENERGI;
+            user.hunger -= diffMinutes * KONFIG.SLEEP_DECAY_LAPAR;
 
-        // Batas Bawah 0
-        if (user.hunger < 0) user.hunger = 0;
+            // Cek apakah durasi tidur sudah habis?
+            if (now >= user.sleepEndTime) {
+                user.isSleeping = false; // Bangun otomatis
+                user.sleepEndTime = 0;
+            }
+        } else {
+            // Kalau Bangun: Normal decay
+            user.hunger -= diffMinutes * KONFIG.DECAY_LAPAR;
+            user.energy -= diffMinutes * KONFIG.DECAY_ENERGI;
+        }
+        // -------------------------------------
+
+        // Batas Atas & Bawah
+        if (user.energy > 100) user.energy = 100;
         if (user.energy < 0) user.energy = 0;
+        if (user.hunger < 0) user.hunger = 0;
 
-        // 2. Konsekuensi: Jika Lapar 0, Darah berkurang
+        // Konsekuensi Lapar
         if (user.hunger === 0) {
             user.hp -= KONFIG.DECAY_HP * diffMinutes; 
         }
 
-        // 3. Cek Kematian
+        // Cek Mati
         if (user.hp <= 0) {
             user.hp = 0;
             user.isDead = true;
-            
-            // Hukuman Mati Sultan: Hilang 20% uang
+            user.isSleeping = false; // Paksa bangun kalau mati
             const denda = Math.floor(user.balance * KONFIG.DENDA_MATI);
             user.balance -= denda;
         }
 
-        user.lastLifeUpdate = now; // Reset waktu
+        user.lastLifeUpdate = now;
     }
 };
 
@@ -106,7 +121,16 @@ module.exports = async (command, args, msg, user, db) => {
     // --- JALANKAN UPDATE KEHIDUPAN ---
     updateLife(user, db, now);
     saveDB(db); 
-    // ---------------------------------
+    
+    updateLife(user, db, now);
+    saveDB(db); 
+
+    // Jika Sedang Tidur, tolak semua command KECUALI 'bangun', 'me', 'status'
+    const sleepAllowed = ['bangun', 'wake', 'me', 'status', 'cekstatus', 'profile'];
+    if (user.isSleeping && !sleepAllowed.includes(command)) {
+        const sisaMenit = Math.ceil((user.sleepEndTime - now) / 60000);
+        return msg.reply(`💤 *Ssstt... Kamu sedang tidur!*\n\nEnergi sedang diisi.\nBangun otomatis dalam: ${sisaMenit} menit.\nKetik \`!bangun\` jika ingin bangun paksa.`);
+    }
 
     // Cek Kematian (Block command jika mati, kecuali revive/status/admin)
     const deadAllowed = ['me', 'status', 'revive', 'rs', 'hidupstatus', 'matistatus'];
@@ -176,18 +200,35 @@ module.exports = async (command, args, msg, user, db) => {
     }
 
     // 3. TIDUR (!tidur)
-    if (command === 'tidur' || command === 'sleep') {
-        const lastSleep = user.lastSleep || 0;
-        if (now - lastSleep < KONFIG.TIDUR_COOLDOWN) {
-             const sisa = Math.ceil((KONFIG.TIDUR_COOLDOWN - (now - lastSleep)) / 60000);
-             return msg.reply(`❌ Kamu baru saja bangun! Tunggu ${sisa} menit lagi.`);
-        }
+   if (command === 'tidur' || command === 'sleep') {
+        // Cek Durasi (Argumen pertama)
+        let durasiJam = parseInt(args[0]);
+        if (!args[0]) durasiJam = 1; // Default 1 Jam jika tidak diisi
 
-        user.energy = 100;
-        user.lastSleep = now;
+        // Validasi
+        if (isNaN(durasiJam) || durasiJam < 1 || durasiJam > 10) {
+            return msg.reply("❌ Durasi tidur minimal 1 jam, maksimal 10 jam.\nContoh: `!tidur 8` (Tidur 8 jam)");
+        }
+        
+        if (user.energy >= 95) return msg.reply("❌ Matamu masih segar bugar (Energi Penuh)!");
+
+        // Set Status Tidur
+        user.isSleeping = true;
+        user.sleepEndTime = now + (durasiJam * 60 * 60 * 1000); // Konversi Jam ke Milidetik
         saveDB(db);
 
-        return msg.reply(`💤 *ZZZ...*\nKamu tidur di kasur King Size.\n⚡ Energi pulih menjadi 100%!`);
+        return msg.reply(`💤 *ZZZ... SELAMAT TIDUR*\nKamu memutuskan tidur selama *${durasiJam} jam*.\n\n⚡ Energi akan terisi penuh.\n🚫 Lapar berkurang sangat lambat.\n⚠️ Ketik \`!bangun\` jika ada darurat.`);
+    }
+
+    // --- TAMBAH COMMAND BANGUN ---
+    if (command === 'bangun' || command === 'wake') {
+        if (!user.isSleeping) return msg.reply("❌ Kamu sedang tidak tidur.");
+        
+        user.isSleeping = false;
+        user.sleepEndTime = 0;
+        saveDB(db);
+        
+        return msg.reply("☀️ *SELAMAT PAGI*\nKamu bangun tidur. Segera cek status (!me) dan cari sarapan.");
     }
 
     // 4. REVIVE / RS (!rs)
@@ -431,3 +472,4 @@ module.exports = async (command, args, msg, user, db) => {
         }
     }
 };
+
