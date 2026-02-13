@@ -61,6 +61,7 @@ module.exports = async (command, args, msg, user, db) => {
             return msg.reply(`⏳ Sabar... Tunggu *${sisaJam} jam ${sisaMenit} menit* lagi.`);
         }
         user.balance += 500; 
+        user.dailyIncome = (user.dailyIncome || 0) + 500;
         user.lastDaily = now;
         saveDB(db);
         return msg.reply("🎁 *DAILY CLAIM*\nKamu mendapatkan 💰500 koin! Gunakan untuk modal trading.");
@@ -88,6 +89,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (menang) {
             const profit = bet; 
             user.balance += profit;
+            user.dailyIncome = (user.dailyIncome || 0) + profit;
             msg.reply(`🎉 *WIN!* Kartu bagus!\nProfit: +💰${profit.toLocaleString('id-ID')}${bonusText}\n💰 Saldo: 💰${Math.floor(user.balance).toLocaleString('id-ID')}`);
         } else {
             user.balance -= bet;
@@ -126,12 +128,14 @@ module.exports = async (command, args, msg, user, db) => {
             if (a === "💎") winAmount = bet * 75; 
             
             user.balance += winAmount;
+            user.dailyIncome = (user.dailyIncome || 0) + winAmount;
             resMsg += `🚨 *JACKPOT SULTAN!!!* 🚨\nAnda menang 💰${winAmount.toLocaleString('id-ID')}!`;
         } 
         // Pair (2 Sama) - Hadiah dikit (Balik modal sebagian)
         else if (a === b || b === c || a === c) {
             winAmount = Math.floor(bet * 0.5); 
             user.balance += winAmount;
+            user.dailyIncome = (user.dailyIncome || 0) + winAmount;
             resMsg += `✨ *Pair!* (2 Gambar sama).\nHadiah: 💰${winAmount.toLocaleString('id-ID')}`;
         } 
         // Kalah
@@ -175,6 +179,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (userGet === "💰") {
             const profit = Math.floor(bet * 2.5); // Menang x2.5
             user.balance += profit;
+            user.dailyIncome = (user.dailyIncome || 0) + profit;
             resultMsg += `🎉 *BERHASIL!* Kamu menemukan Harta Karun!\nProfit: +💰${profit.toLocaleString('id-ID')}`;
         } else {
             user.balance -= bet;
@@ -215,6 +220,7 @@ module.exports = async (command, args, msg, user, db) => {
         }
 
         user.balance += reward;
+        user.dailyIncome = (user.dailyIncome || 0) + reward;
         const qMsg = handleQuest(user, "game");
         
         saveDB(db);
@@ -322,3 +328,4 @@ module.exports = async (command, args, msg, user, db) => {
         }
     }
 };
+
