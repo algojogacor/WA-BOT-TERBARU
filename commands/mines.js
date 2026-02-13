@@ -88,6 +88,7 @@ module.exports = async (command, args, msg, user, db) => {
                 const finalPrize = rawPrize - tax;
 
                 user.balance += finalPrize;
+                user.dailyIncome = (user.dailyIncome || 0) + finalPrize;
                 saveDB(db);
 
                 txt += `🚑 *ASURANSI CAIR!* 🚑\n`;
@@ -141,6 +142,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (ses.opened.length === 0) return msg.reply("❌ Belum gali satupun kok udah nyerah? Minimal gali 1 kotak.");
 
         user.balance += ses.currentWin;
+        user.dailyIncome = (user.dailyIncome || 0) + ses.currentWin;
         saveDB(db);
         
         delete sessions[senderId];
