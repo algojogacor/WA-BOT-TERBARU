@@ -86,6 +86,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (isChallengerWin) {
             // Penantang Menang
             challengerUser.balance += winAmount; // Dapat uang lawan (minus pajak)
+            user.dailyIncome = (user.dailyIncome || 0) + winAmount;
             user.balance -= amount;              // Target kehilangan uang full
             
             txt += `💀 @${senderId.split('@')[0]} rubuh bersimbah darah!\n`;
