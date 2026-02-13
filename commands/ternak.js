@@ -328,6 +328,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (diff > DEATH_LIMIT) {
             const scrap = 10000;
             user.balance += scrap;
+            user.dailyIncome = (user.dailyIncome || 0) + scrap;
             user.ternak.splice(index, 1);
             saveDB(db);
             return msg.reply(`☠️ Bangkai ${conf.name} dijual ke tukang rongsok seharga Rp ${fmt(scrap)}.`);
@@ -344,6 +345,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         const finalPrice = total + bonus;
         user.balance += finalPrice;
+        user.dailyIncome = (user.dailyIncome || 0) + finalPrice;
         user.ternak.splice(index, 1);
         saveDB(db);
 
