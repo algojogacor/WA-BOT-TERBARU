@@ -168,7 +168,7 @@ module.exports = async (command, args, msg, user, db) => {
 
         // PAJAK PROGRESIF
         let taxRate = 0.002; // 0.2% Standard
-        if (user.balance > 100_000_000_000_000) taxRate = 0.5; // 5%
+        if (user.balance > 100_000_000_000_000) taxRate = 0.05; // 5%
 
         const fee = Math.floor(gross * 0.01);
         const tax = Math.floor(gross * taxRate);
@@ -178,6 +178,7 @@ module.exports = async (command, args, msg, user, db) => {
         if (user.crypto[koin] <= 0) delete user.crypto[koin];
         
         user.balance += net;
+        user.dailyIncome = (user.dailyIncome || 0) + net;
         saveDB(db);
 
         return msg.reply(`✅ *JUAL SUKSES*\nKoin: ${koin.toUpperCase()}\nHarga Real: Rp ${fmt(currentPrice)}\nJual: ${amount.toFixed(8)}\n\n💰 Gross: Rp ${fmt(gross)}\n💸 Tax (${taxRate*100}%): Rp ${fmt(tax)}\n💵 *Terima: Rp ${fmt(net)}*`);
@@ -249,5 +250,6 @@ module.exports = async (command, args, msg, user, db) => {
          return msg.reply(txt);
     }
 };
+
 
 
