@@ -412,22 +412,80 @@ module.exports = async (command, args, msg, user, db, sock) => {
         return msg.reply(`💸 *DIBAYAR*\nNominal: 💰${amount.toLocaleString()}\nSisa Utang: 💰${user.debt.toLocaleString()}`);
     }
 
-    // 7. TOP GLOBAL
-    if (command === 'top' || command === 'leaderboard') {
-        // 1. Cek apakah di Grup
+   // =================================================================
+    // 7. TOP PENDAPATAN HARIAN (GROUP ONLY)
+    // =================================================================
+    if (command === 'top' || command === 'leaderboard' || command === 'dailyrank') {
         const chatId = msg.from || msg.key.remoteJid;
         if (!chatId.endsWith('@g.us')) return msg.reply("❌ Fitur ini hanya untuk Grup!");
 
-        // 2. Ambil Data Anggota Grup (Perlu sock)
+        // 1. Ambil Data Member Grup
         let groupMetadata;
         try {
             groupMetadata = await sock.groupMetadata(chatId);
         } catch (e) {
-            return msg.reply("⚠️ Gagal mengambil data grup. Bot harus admin atau koneksi stabil.");
+            return msg.reply("⚠️ Gagal mengambil data grup. Pastikan bot admin/koneksi aman.");
         }
-
         const memberIds = groupMetadata.participants.map(p => p.id);
 
+        // 2. Filter & Sort Berdasarkan DAILY INCOME
+        const sorted = Object.entries(db.users)
+            .filter(([id, data]) => memberIds.includes(id)) // Hanya user di grup ini
+            .map(([id, data]) => ({
+                id,
+                name: data.name || id.split('@')[0],
+                job: data.job || "Pengangguran",
+                // Hitung Pendapatan Harian (Kalau undefined anggap 0)
+                dailyIncome: data.dailyIncome || 0 
+            }))
+            .sort((a, b) => b.dailyIncome - a.dailyIncome) // Urutkan dari yang paling cuan hari ini
+            .slice(0, 10); // Ambil 10 besar
+
+        // 3. Icon Job Mapping
+        const getJobIcon = (job) => {
+            const j = job.toLowerCase();
+            if (j.includes("petani") || j.includes("tanam")) return "🌾";
+            if (j.includes("polisi")) return "👮";
+            if (j.includes("dokter") || j.includes("rs")) return "👨‍⚕️";
+            if (j.includes("maling") || j.includes("perampok")) return "🥷";
+            if (j.includes("tambang") || j.includes("miner")) return "⛏️";
+            if (j.includes("karyawan") || j.includes("pabrik")) return "👷";
+            return "💼"; // Default
+        };
+
+        // 4. Render Tampilan
+        let txt = `🏆 *TOP PENDAPATAN HARI INI* 🏆\n(Reset setiap jam 00:00 WIB)\n${"―".repeat(25)}\n\n`;
+        
+        if (sorted.length === 0 || sorted[0].dailyIncome === 0) {
+            txt += "💤 Belum ada yang berpenghasilan hari ini.\nAyo kerja atau nge-rob!";
+        } else {
+            sorted.forEach((u, i) => {
+                // Jangan tampilkan yang pendapatannya 0
+                if (u.dailyIncome <= 0) return;
+
+                let medal = '';
+                if (i === 0) medal = '🥇';
+                else if (i === 1) medal = '🥈';
+                else if (i === 2) medal = '🥉';
+                else medal = `${i + 1}.`;
+
+                const formattedMoney = u.dailyIncome.toLocaleString('id-ID');
+                const jobIcon = getJobIcon(u.job);
+
+                txt += `${medal} @${u.name}\n`;
+                txt += `   └ ${jobIcon} ${u.job} | 💸 +Rp ${formattedMoney}\n`;
+            });
+        }
+
+        // Cek Posisi Sendiri
+        const myRank = sorted.findIndex(x => x.id === (msg.author || msg.key.participant));
+        const myIncome = (user.dailyIncome || 0).toLocaleString('id-ID');
+        
+        txt += `\n${"―".repeat(25)}\n👤 *Posisi Kamu: #${myRank + 1}*\n💰 Cuan Hari Ini: Rp ${myIncome}`;
+
+        // Kirim
+        return msg.reply(txt);
+    }
         // 3. Filter Database (Hanya User yang ada di Grup ini)
         const sorted = Object.entries(db.users)
             .filter(([id, data]) => memberIds.includes(id)) // Filter: ID harus ada di memberIds
@@ -501,6 +559,7 @@ module.exports = async (command, args, msg, user, db, sock) => {
             const stolen = Math.floor(targetWallet * 0.2); 
             targetUser.balance -= stolen;
             user.balance += stolen;
+user.dailyIncome = (user.dailyIncome || 0) + stolen;
             user.lastRob = now;
             saveDB(db);
             return msg.reply(`🥷 *SUKSES!* Dapat 💰${stolen.toLocaleString()} dari @${targetId.split('@')[0]}\n⚡ Energi -10`, null, {mentions: [targetId]});
@@ -515,5 +574,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
         }
     }
 };
+
 
 
