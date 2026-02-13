@@ -1,35 +1,38 @@
 const { saveDB } = require('../helpers/database');
 
 // =================================================================
-// 1. KONFIGURASI "SULTAN" & KEHIDUPAN
+// 1. KONFIGURASI Kehidupan
 // =================================================================
 const KONFIG = {
     // LIFE DECAY (Pengurangan Status)
-    DECAY_LAPAR: 1,       // Berkurang 1% per menit
-    DECAY_ENERGI: 2,      // Berkurang 1% per menit
-    DECAY_HP: 5,          // Darah berkurang 5% per menit jika kelaparan
-    SLEEP_REGEN_ENERGI: 1.5,  // Nambah 1.5% energi per menit
-    SLEEP_DECAY_LAPAR: 0.1,   // Lapar cuma turun 0.1% per menit (Sangat Hemat)
+    // 100% / 240 menit = ~0.41
+    DECAY_LAPAR: 0.3,       // Habis dalam 4 jam 10 menit
+    DECAY_ENERGI: 0.4,      // Habis dalam 3 jam 20 menit (sedikit lebih cepat dari lapar)
+    DECAY_HP: 1,            // Darah berkurang 1% per menit jika kelaparan (Waktu 100 menit)
     
-    // HARGA & DENDA (High Stakes)
-    BIAYA_MAKAN: 50000000,       // 50 Juta (Sekali Makan)
-    BIAYA_RS: 500000000,         // 500 Juta (Revive/Berobat)
-    DENDA_MATI: 0.2,             // Hilang 20% Saldo jika mati
+    // MODIFIKASI SAAT TIDUR
+    SLEEP_REGEN_ENERGI: 0.7,  // Isi energi 0-100 butuh ~2.3 jam tidur
+    SLEEP_DECAY_LAPAR: 0.05,  // Tidur jadi sangat awet (bisa tahan 30 jam lebih)
+    
+    // HARGA & DENDA (Tetap Sultan)
+    BIAYA_MAKAN: 50000000,       
+    BIAYA_RS: 500000000,         
+    DENDA_MATI: 0.2,             
     
     // LIMIT & PAJAK EKONOMI
-    LIMIT_HARIAN: 10000000000,   // 10 Miliar (Limit Transfer)
-    MAX_LOAN: 5000000000,        // 5 Miliar (Max Pinjaman)
-    INTEREST_RATE: 0.2,          // Bunga Pinjaman 20%
-    TRANSFER_TAX: 0.05,          // Pajak Transfer 5%
+    LIMIT_HARIAN: 10000000000,   
+    MAX_LOAN: 5000000000,        
+    INTEREST_RATE: 0.2,          
+    TRANSFER_TAX: 0.05,          
     
     // COOLDOWN
-    BANK_COOLDOWN: 10 * 60 * 1000, // 10 Menit
-    ROB_COOLDOWN: 30 * 60 * 1000,  // 30 Menit
-    TIDUR_COOLDOWN: 10 * 60 * 1000 // 10 Menit
-};
+    BANK_COOLDOWN: 10 * 60 * 1000, 
+    ROB_COOLDOWN: 30 * 60 * 1000,  
+    TIDUR_COOLDOWN: 10 * 60 * 1000 
+};;
 
 // =================================================================
-// 2. HELPER: UPDATE STATUS (LOGIKA JANTUNG BOT)
+// 2. HELPER: UPDATE STATUS
 // =================================================================
 const updateLife = (user, db, now) => {
     // Init Data Baru
@@ -534,6 +537,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
