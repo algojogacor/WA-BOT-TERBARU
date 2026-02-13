@@ -66,6 +66,7 @@ module.exports = async (command, args, msg, user, db) => {
         let reward = score * basePrice;
 
         user.balance += reward;
+        user.dailyIncome = (user.dailyIncome || 0) + reward;
         user.lastSlitherCode = code;
 
         saveDB(db);
