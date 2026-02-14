@@ -118,7 +118,7 @@ module.exports = async (command, args, msg, user, db, sock) => {
     saveDB(db); 
 
     // Jika Sedang Tidur, tolak semua command KECUALI 'bangun', 'me', 'status'
-    const sleepAllowed = ['bangun', 'wake', 'me', 'status', 'cekstatus', 'profile'];
+    const sleepAllowed = ['bangun', 'revive', 'wake', 'me', 'status', 'cekstatus', 'profile'];
     if (user.isSleeping && !sleepAllowed.includes(command)) {
         const sisaMenit = Math.ceil((user.sleepEndTime - now) / 60000);
         return msg.reply(`💤 *Ssstt... Kamu sedang tidur!*\n\nEnergi sedang diisi.\nBangun otomatis dalam: ${sisaMenit} menit.\nKetik \`!bangun\` jika ingin bangun paksa.`);
@@ -526,6 +526,7 @@ user.dailyIncome = (user.dailyIncome || 0) + stolen;
         }
     }
 };
+
 
 
 
