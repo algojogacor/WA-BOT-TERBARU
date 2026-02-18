@@ -705,21 +705,21 @@ _Jaga nyawa! Mati = Saldo lenyap 20%_
 _Ubah hasil ternak jadi produk premium!_
 
 👑 *KHUSUS BOS (OWNER)*
-├ 🏭 !pabrik : Cek status pabrik & mesin
-├ 🏗️ !bangunpabrik <tipe> : Beli mesin produksi
-├ 🤝 !rekrut @tag : Pekerjakan member grup
-├ 👢 !pecat @tag : Pecat karyawan
-├ 📦 !gudang : Cek stok bahan & produk
-├ 💰 !jualproduk <kode> : Jual barang ke pasar
-├ 🔧 !service : Perbaiki mesin rusak
-└ 💹 !cekpasar : Cek harga jual live
+• 🏭 !pabrik : Cek status pabrik & mesin
+• 🏗️ !bangunpabrik <tipe> : Beli mesin produksi
+• 🤝 !rekrut @tag : Pekerjakan member grup
+• 👢 !pecat @tag : Pecat karyawan
+• 📦 !gudang : Cek stok bahan & produk
+• 💰 !jualproduk <kode> : Jual barang ke pasar
+• 🔧 !service : Perbaiki mesin rusak
+• 💹 !cekpasar : Cek harga jual live
 
 👷 *KHUSUS KARYAWAN (BURUH)*
-├ 🪪 !pabrik : Cek stamina & majikan
-├ ⚙️ !olah <bahan> <jumlah> : Proses produksi
-└ 🚪 !resign : Keluar dari pabrik
+• 🪪 !pabrik : Cek stamina & majikan
+• ⚙️ !olah <bahan> <jumlah> : Proses produksi
+• 🚪 !resign : Keluar dari pabrik
 📚 *PANDUAN*
-└ 📖 !pabrik help : Lihat resep & harga mesin
+•  📖 !pabrik help : Lihat resep & harga mesin
 
 💼 *PEKERJAAN (JOBS)*
 • !jobs (List Lowongan)
@@ -790,8 +790,9 @@ _Ubah hasil ternak jadi produk premium!_
 • !hide <pesan> (Reply/Kirim Gambar) | !reveal: Munculkan pesan
 
 🕰️ *TIME MACHINE*
-• !timemachine : Lihat chat grup di masa lalu
-• !flashback : Kenangan chat jam segini (Harian)
+• !timemachine : Lihat arsip chat random masa lalu
+• !timemachine <kode> : Navigasi waktu (Maju/Mundur 1 Jam)
+• !flashback : Kenangan harian pada jam ini
 
 
 🛠️ *TOOLS & ADMIN*
@@ -836,6 +837,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
