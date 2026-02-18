@@ -58,7 +58,8 @@ const ALLOWED_GROUPS = [
     "6282140693010-1590052322@g.us", // Grup Keluarga Wonoboyo
     "120363253471284606@g.us",       // Grup Ambarya
     "120363328759898377@g.us",       // Grup Testingbot
-    "120363422854499629@g.us"        // Grup English Area
+    "120363422854499629@g.us",        // Grup English Area
+    "120363426746650307@g.us"
 ];
 
 
@@ -837,6 +838,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
