@@ -73,7 +73,7 @@ app.use(cors()); // Biar web bisa akses
 app.use(express.json()); // Biar bisa baca data JSON
 app.use(express.urlencoded({ extended: true }));
 
-// Folder tempat menyimpan file HTML/JS Catur (Buat folder bernama 'public_catur' nanti)
+// Folder tempat menyimpan file HTML/JS Catur
 app.use('/game', express.static(path.join(__dirname, 'public_catur')));
 
 // API: Web lapor hasil game ke sini
@@ -173,7 +173,7 @@ async function startBot() {
         browser: ['Ubuntu', 'Chrome', '20.0.04'],
         connectTimeoutMs: 60000,
         keepAliveIntervalMs: 10000,
-        retryRequestDelayMs: 2000,
+        retryRequestDelayMs: 5000,
         syncFullHistory: false,
         generateHighQualityLinkPreview: true,
     });
@@ -836,6 +836,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
