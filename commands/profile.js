@@ -1,5 +1,6 @@
 const { saveDB } = require('../helpers/database');
 
+
 // HELPER FORMAT ANGKA
 const fmt = (num) => Math.floor(Number(num)).toLocaleString('id-ID');
 const safeInt = (val) => isNaN(Number(val)) ? 0 : Number(val);
@@ -54,7 +55,14 @@ const CROP_PRICES = {
 
 // 6. HARGA MINING
 const MINING_PRICES = { 
-    'rtx4070': 20000000, 'rtx4090': 50000000, 'dual4090': 80000000, 'asic': 100000000
+    'rtx4070': 4000000000, 'rtx4090': 9500000000, 'dual4090': 15000000000, 'asic': 18000000000, 'usb_miner': 1500000000,
+    'quantum_rig': 25000000000
+};
+
+const MINING_UPGRADE_PRICES = {
+    'cooling': 5_000_000_000,
+    'psu': 10_000_000_000,
+    'firewall': 20_000_000_000
 };
 
 const JOB_TITLES = {
@@ -89,7 +97,7 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
             }
         }
 
-        // 🔥 4. VALAS & EMAS (Updated: USD, EUR, JPY, Emas)
+        // 4. VALAS & EMAS (Updated: USD, EUR, JPY, Emas)
         if (userData.forex) {
              for (let [code, qty] of Object.entries(userData.forex)) {
                  let price = 0;
@@ -120,19 +128,28 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
             }
         }
 
-        // 7. Mining
-        if (userData.mining?.racks) userData.mining.racks.forEach(m => total += (MINING_PRICES[m] || 0));
-
-        // 8. Pabrik (Mesin & Gudang)
-        if (db.factories && db.factories[userId]) {
-            const f = db.factories[userId];
-            if (f.activeLines) f.activeLines.forEach(code => total += (FACTORY_MACHINE_PRICES[code] || 0));
-            if (f.inventory) {
-                for (let [item, qty] of Object.entries(f.inventory)) {
-                    total += safeInt(qty) * (FACTORY_PRODUCT_PRICES[item] || 0);
-                }
-            }
+       // 7. Mining (Alat + Upgrade + Saldo BTC)
+if (userData.mining) {
+    // Hitung harga semua VGA di rak (Mengikuti harga pasar jika ada)
+if (userData.mining.racks) {
+    userData.mining.racks.forEach(m => {
+        let marketPrice = db.market?.miningPrices?.[m]; // Ambil harga pasar live
+        total += safeInt(marketPrice || MINING_PRICES[m] || 0);
+    });
+}
+    // Hitung harga Upgrade yang sudah terpasang
+    if (userData.mining.upgrades) {
+        for (let [upg, active] of Object.entries(userData.mining.upgrades)) {
+            if (active) total += safeInt(MINING_UPGRADE_PRICES[upg] || 0);
         }
+    }
+}
+
+// Tambahkan juga hitungan koin BTC ke kekayaan (jika belum ada di bagian crypto)
+if (userData.crypto && userData.crypto.btc) {
+    let btcPrice = db.market?.forex?.usd ? (db.market.forex.usd * 63000) : 1_500_000_000;
+    total += safeInt(userData.crypto.btc * btcPrice);
+}
 
         // 9. Properti (Bisnis)
         if (userData.business && userData.business.owned) {
@@ -157,8 +174,8 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
         return "🥚 Warga Sipil";
     };
 
-    // ==================================================================
-    // 1. PROFILE USER (!me)
+// ==================================================================
+    // 1. PROFILE USER (!me) - UPDATED WITH MINING ASSETS
     // ==================================================================
     if (command === "me" || command === "profile" || command === "level") {
         const senderId = msg.author || msg.key.participant || msg.key.remoteJid;
@@ -166,12 +183,13 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
         const jobTitle = user.job ? JOB_TITLES[user.job] : "Pengangguran";
         const nextLevelXP = user.level * 1000;
         
-        // Hitung Aset Spesifik untuk Display
+        // 1. Hitung Aset Properti/Bisnis
         let propertyAsset = 0;
         if (user.business?.owned) {
             for (let [k, v] of Object.entries(user.business.owned)) propertyAsset += (PROPERTY_PRICES[k] || 0) * v;
         }
 
+        // 2. Hitung Aset Valas & Emas
         let valasAsset = 0;
         if (user.forex) {
              for (let [code, qty] of Object.entries(user.forex)) {
@@ -184,6 +202,30 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
              }
         }
 
+        // 3. Hitung Aset Mining (Hardware + Upgrade) - NEW!
+        let miningAsset = 0;
+        if (user.mining?.racks) {
+            user.mining.racks.forEach(m => miningAsset += (MINING_PRICES[m] || 0));
+        }
+        if (user.mining?.upgrades) {
+            // Kita asumsikan UPGRADES didefinisikan di atas (Cooling, PSU, dll)
+            const UPG_PRICES = { 'cooling': 5000000000, 'psu': 10000000000, 'firewall': 20000000000 };
+            for (let [u, a] of Object.entries(user.mining.upgrades)) {
+                if (a) miningAsset += (UPG_PRICES[u] || 0);
+            }
+        }
+
+        // 4. Hitung Aset Crypto (BTC/ETH/dll) - NEW!
+        let cryptoAsset = 0;
+        if (user.crypto) {
+            for (let [coin, amt] of Object.entries(user.crypto)) {
+                let price = db.market?.prices?.[coin]?.price || 0;
+                // Fallback harga BTC jika market belum update (1.5M per koin)
+                if (price === 0 && coin === 'btc') price = 1500000000;
+                cryptoAsset += safeInt(amt) * price;
+            }
+        }
+
         let txt = `👤 *KARTU IDENTITAS* 👤\n`;
         txt += `━━━━━━━━━━━━━━━━━━━\n`;
         txt += `🏷️ Nama: *${user.name || msg.pushName}*\n`;
@@ -194,8 +236,10 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
         txt += `💰 *RINCIAN KEKAYAAN*\n`;
         txt += `💵 Tunai: Rp ${fmt(user.balance)}\n`;
         txt += `🏦 Bank: Rp ${fmt(user.bank)}\n`;
-        txt += `💱 Valas/Emas: Rp ${fmt(valasAsset)}\n`; // NEW
+        txt += `💱 Valas/Emas: Rp ${fmt(valasAsset)}\n`;
         txt += `🏢 Properti: Rp ${fmt(propertyAsset)}\n`;
+        txt += `⛏️ Perangkat Mining: Rp ${fmt(miningAsset)}\n`; // NEW
+        txt += `🪙 Aset Crypto: Rp ${fmt(cryptoAsset)}\n`;      // NEW
         txt += `🏭 Industri: ${db.factories?.[senderId] ? 'Aktif' : '-'}\n`; 
         if (user.debt > 0) txt += `⚠️ Hutang: -Rp ${fmt(user.debt)}\n`;
         txt += `━━━━━━━━━━━━━━━━━━━\n`;
@@ -205,7 +249,7 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
         
         return msg.reply(txt);
     }
-
+    
     // ==================================================================
     // 2. LEADERBOARD (!rank)
     // ==================================================================
@@ -349,4 +393,5 @@ module.exports = async (command, args, msg, user, db, chat, sock) => {
         saveDB(db);
         return msg.reply(`🎉 *KLAIM SUKSES*\n💰 Dapat: Rp ${fmt(totalGift)}`);
     }
+
 };
