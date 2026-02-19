@@ -759,6 +759,25 @@ _Ubah hasil ternak jadi produk premium!_
 
 ⚽ *SPORT BETTING*
 • !updatebola | !bola | !topbola | !resultbola
+• Fitur: 1X2 | Asian Handicap | Over/Under | Mix Parlay
+  Commands:
+• !bola            — Lihat semua pertandingan aktif
+• !odds <id>       — Detail odds suatu match
+• !bet <id> <jenis> <pilihan> <jumlah>
+  - Pasang taruhan
+    jenis  : 1x2 | hdp | ou
+    pilihan: h/d/a (1x2) | h/a (hdp) | o/u (ou)
+• !parlay <id> <jenis> <pilihan> — Tambah leg ke parlay slip
+• !parlaybet <jumlah>            — Pasang taruhan parlay
+• !parlaylihat                   — Lihat slip parlay sementara
+• !parlaybatal                   — Batal/kosongkan slip
+• !mybets          — Riwayat taruhan kamu
+• !topbola         — Leaderboard
+• !updatebola      — [Admin] Ambil jadwal dari API
+•  !addbola         — [Admin] Tambah match manual
+• !resultbola <id> <skor>  — [Admin] Input hasil (contoh: 2-1)
+• !tutupbola <id>  — [Admin] Tutup taruhan suatu match
+• !hapusbola <id>  — [Admin] Hapus match
 
 🧠 *AI SUPER TIERS*
 • !ai0 <tanya> (Terbaik namun terbatas)
@@ -846,6 +865,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
