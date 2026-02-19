@@ -409,43 +409,6 @@ async function startNextEvent() {
             );
             break;
         }
-
-        // ── 12. BOSS RAID ────────────────────────────────────
-        case 'boss_raid': {
-            const bossList = [
-                { nama: '🐉 Naga Api Kuno', maxHp: 50000, reward: 15000000 },
-                { nama: '👹 Demon King',    maxHp: 80000, reward: 25000000 },
-                { nama: '🦄 Dark Unicorn',  maxHp: 30000, reward: 10000000 },
-                { nama: '🤖 Robot Raksasa', maxHp: 60000, reward: 20000000 },
-                { nama: '🌊 Kraken Laut',   maxHp: 45000, reward: 18000000 },
-            ];
-            const boss = bossList[Math.floor(Math.random() * bossList.length)];
-            // Tiap grup punya instance boss sendiri
-            state.eventData.bossActive  = true;
-            state.eventData.bossNama    = boss.nama;
-            state.eventData.bossMaxHp   = boss.maxHp;
-            state.eventData.bossReward  = boss.reward;
-            // Per-grup state: { groupId: { hp, dmg: { jid: dmg } } }
-            state.eventData.bossPerGrup = {};
-            for (const gid of ALL_GROUPS) {
-                state.eventData.bossPerGrup[gid] = {
-                    hp:  boss.maxHp,
-                    dmg: {},
-                };
-            }
-            await broadcast(
-                `👾 *EVENT: BOSS RAID!* 👾\n` +
-                `━━━━━━━━━━━━━━━━━━━━\n` +
-                `${boss.nama} muncul mengancam semua grup!\n\n` +
-                `❤️ HP Boss: *${fmt(boss.maxHp)}*\n` +
-                `💰 Reward Pool: *${fmt(boss.reward)} koin per grup*\n\n` +
-                `⚔️ Ketik *!serang* untuk menyerang!\n` +
-                `💥 Damage: 1.000 - 5.000 per serangan\n\n` +
-                `🏆 Reward dibagi berdasarkan % damage!\n` +
-                `⏱️ Boss mati jika HP = 0 atau 5 menit habis!`
-            );
-            break;
-        }
     }
 }
 
@@ -472,42 +435,6 @@ async function resolveLombaAktif() {
         `💰 Hadiah: *${fmt(hadiah)} koin!*`,
         [winJid]
     );
-}
-
-// ============================================================
-//  RESOLVE BOSS RAID PER GRUP SEBELUM GANTI EVENT
-// ============================================================
-async function resolveBossRaid(partial = false) {
-    const state     = global.abuseState;
-    const db        = state.db;
-    const bossPerGrup = state.eventData.bossPerGrup || {};
-    const pool      = state.eventData.bossReward;
-    const sock      = state.sock;
-
-    for (const gid of ALL_GROUPS) {
-        const g    = bossPerGrup[gid];
-        if (!g) continue;
-        const dmgMap = g.dmg;
-        const total  = Object.values(dmgMap).reduce((s, x) => s + x, 0);
-        if (total === 0) continue;
-
-        const mult = partial ? 0.5 : 1;
-        let txt = partial
-            ? `💀 *BOSS MELARIKAN DIRI!*\n📊 Reward 50% tetap dibagi:\n`
-            : `🔥 *BOSS RAID SELESAI!*\n📊 Distribusi reward:\n`;
-
-        const attackers = Object.keys(dmgMap).sort((a, b) => dmgMap[b] - dmgMap[a]).slice(0, 10);
-        const mentions  = [];
-        for (const jid of attackers) {
-            const pct    = dmgMap[jid] / total;
-            const reward = Math.floor(pool * pct * mult);
-            if (db.users[jid]) db.users[jid].balance = (db.users[jid].balance || 0) + reward;
-            txt += `• @${jid.split('@')[0]}: ${fmt(dmgMap[jid])} dmg → +${fmt(reward)} koin\n`;
-            mentions.push(jid);
-        }
-        saveDB(db);
-        try { await sock.sendMessage(gid, { text: txt, mentions }); } catch(e) {}
-    }
 }
 
 // ============================================================
@@ -562,10 +489,8 @@ async function stopEvent(reason = 'auto') {
 
 // ============================================================
 //  HANDLER PESAN INTERAKTIF
-//  Dipanggil dari messages.upsert di index.js
-//  untuk SETIAP pesan yang masuk dari grup whitelist
 // ============================================================
-module.exports.handleInteractive = async (body, sender, groupId, db) => {
+const handleInteractive = async (body, sender, groupId, db) => {
     if (!ALL_GROUPS.includes(groupId)) return;
     const state = global.abuseState;
     if (!state.active || !state.currentEvent) return;
@@ -577,9 +502,8 @@ module.exports.handleInteractive = async (body, sender, groupId, db) => {
     if (state.currentEvent === 'meteor_langka' && data.meteorActive) {
         if (!data.meteorKlaim) {
             if (txtLower === 'klaim') {
-                // Tandai grup ini sudah ada pemenang meteor (per grup)
                 if (!data.meteorWinners) data.meteorWinners = {};
-                if (data.meteorWinners[groupId]) return; // sudah ada yang klaim di grup ini
+                if (data.meteorWinners[groupId]) return; 
                 data.meteorWinners[groupId] = sender;
                 const nilai = data.meteorReward.nilai;
                 if (db.users[sender]) db.users[sender].balance = (db.users[sender].balance || 0) + nilai;
@@ -599,7 +523,7 @@ module.exports.handleInteractive = async (body, sender, groupId, db) => {
 
     // ── TEBAK BERHADIAH ───────────────────────────────────
     if (state.currentEvent === 'tebak_berhadiah' && data.tebakActive) {
-        if (data.tebakSudah[groupId]) return; // grup ini sudah ada pemenang
+        if (data.tebakSudah[groupId]) return; 
         const corrects = [data.tebakJawaban, ...(data.tebakAlt || [])];
         if (corrects.includes(txtLower)) {
             data.tebakSudah[groupId] = true;
@@ -620,7 +544,7 @@ module.exports.handleInteractive = async (body, sender, groupId, db) => {
 
     // ── BALAPAN KLIK ─────────────────────────────────────
     if (state.currentEvent === 'balapan_klik' && data.balapanActive) {
-        if (data.balapanSudah[groupId]) return; // grup ini sudah ada pemenang
+        if (data.balapanSudah[groupId]) return; 
         if (body.trim() === data.balapanKata) {
             data.balapanSudah[groupId] = true;
             const hadiah = data.balapanHadiah;
@@ -644,66 +568,18 @@ module.exports.handleInteractive = async (body, sender, groupId, db) => {
         data.lombaSkor[sender]++;
         return;
     }
-
-    // ── BOSS RAID: !serang ────────────────────────────────
-    if (state.currentEvent === 'boss_raid' && data.bossActive) {
-        if (txtLower === '!serang') {
-            const g = data.bossPerGrup[groupId];
-            if (!g || g.hp <= 0) return;
-
-            const dmg = Math.floor(Math.random() * 4000) + 1000;
-            g.hp = Math.max(0, g.hp - dmg);
-            g.dmg[sender] = (g.dmg[sender] || 0) + dmg;
-
-            const bar    = hpBar(g.hp, data.bossMaxHp);
-            const isDead = g.hp <= 0;
-
-            try {
-                await state.sock.sendMessage(groupId, {
-                    text: `⚔️ @${sender.split('@')[0]} menyerang!\n` +
-                          `💥 Damage: *${fmt(dmg)}*\n` +
-                          `❤️ HP Boss: ${bar} (${fmt(g.hp)}/${fmt(data.bossMaxHp)})\n` +
-                          (isDead ? `\n💀 *BOSS MATI! RAID BERHASIL DI GRUP INI!*` : ''),
-                    mentions: [sender]
-                });
-            } catch(e) {}
-
-            if (isDead) {
-                // Resolve reward untuk grup ini saja
-                const total   = Object.values(g.dmg).reduce((s, x) => s + x, 0) || 1;
-                const pool    = data.bossReward;
-                let txt       = `🏆 *DISTRIBUSI REWARD BOSS RAID:*\n`;
-                const attackers = Object.keys(g.dmg).sort((a, b) => g.dmg[b] - g.dmg[a]);
-                const mentions  = [];
-                for (const jid of attackers) {
-                    const pct    = g.dmg[jid] / total;
-                    const reward = Math.floor(pool * pct);
-                    if (db.users[jid]) db.users[jid].balance = (db.users[jid].balance || 0) + reward;
-                    txt += `• @${jid.split('@')[0]}: ${fmt(g.dmg[jid])} dmg → +${fmt(reward)} koin\n`;
-                    mentions.push(jid);
-                }
-                saveDB(db);
-                try { await state.sock.sendMessage(groupId, { text: txt, mentions }); } catch(e) {}
-                // Tandai boss grup ini sudah mati
-                g.hp = 0;
-            }
-        }
-        return;
-    }
 };
 
 // ============================================================
 //  COMMAND HANDLER UTAMA
-//  Dipanggil dari index.js: await adminAbuseCmd(...)
 // ============================================================
-module.exports = async (command, args, msg, user, db, sock) => {
+const adminAbuseCmd = async (command, args, msg, user, db, sock) => {
     const validCommands = ['adminabuseon', 'adminabuseoff', 'abuseinfo'];
     if (!validCommands.includes(command)) return;
 
     const groupId = msg.from;
     const sender  = msg.author || msg.key?.participant || msg.key?.remoteJid;
 
-    // ── Cek apakah sender adalah admin grup atau owner ────
     const boleh = await isGroupAdmin(sock, groupId, sender);
     if (!boleh) {
         return msg.reply(
@@ -712,7 +588,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
         );
     }
 
-    // ── !adminabuseon ─────────────────────────────────────
     if (command === 'adminabuseon') {
         if (global.abuseState.active) {
             const sisaMs  = EVENT_DURATION - (Date.now() - global.abuseState.startTime);
@@ -720,7 +595,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
             return msg.reply(`⚠️ Event sudah aktif! Sisa waktu: *${sisaMnt} menit*`);
         }
 
-        // Set state
         global.abuseState.active     = true;
         global.abuseState.sock       = sock;
         global.abuseState.db         = db;
@@ -728,7 +602,6 @@ module.exports = async (command, args, msg, user, db, sock) => {
         global.abuseState.eventIndex = 0;
         global.abuseState.startTime  = Date.now();
 
-        // Umumkan ke semua grup
         await broadcast(
             `🎉 *ADMIN ABUSE EVENT DIMULAI!* 🎉\n` +
             `━━━━━━━━━━━━━━━━━━━━\n` +
@@ -742,65 +615,41 @@ module.exports = async (command, args, msg, user, db, sock) => {
             `🚀 *EVENT PERTAMA DIMULAI DALAM 3 DETIK...*`
         );
 
-        // Mulai event pertama setelah 3 detik
         setTimeout(() => startNextEvent(), 3000);
 
-        // Rotasi event tiap 5 menit
         global.abuseState.intervalRef = setInterval(async () => {
             if (!global.abuseState.active) return;
-
-            // Resolve event sebelumnya
             const cur = global.abuseState.currentEvent;
-            if (cur === 'lomba_aktif' && global.abuseState.eventData.lombaActive) {
-                await resolveLombaAktif();
-            }
-            if (cur === 'boss_raid' && global.abuseState.eventData.bossActive) {
-                await resolveBossRaid(true); // partial reward karena waktu habis
-            }
-
+            if (cur === 'lomba_aktif' && global.abuseState.eventData.lombaActive) await resolveLombaAktif();
+            if (cur === 'boss_raid' && global.abuseState.eventData.bossActive) await resolveBossRaid(true);
             await broadcast(`⏩ *Event berganti! Event berikutnya dimulai...*`);
             await startNextEvent();
-
         }, INTERVAL);
 
-        // Mati otomatis setelah 30 menit
         global.abuseState.mainTimer = setTimeout(async () => {
             clearInterval(global.abuseState.intervalRef);
             await stopEvent('auto');
         }, EVENT_DURATION);
-
         return;
     }
 
-    // ── !adminabuseoff ────────────────────────────────────
     if (command === 'adminabuseoff') {
-        if (!global.abuseState.active) {
-            return msg.reply(`❌ Tidak ada event yang sedang berjalan.`);
-        }
+        if (!global.abuseState.active) return msg.reply(`❌ Tidak ada event yang sedang berjalan.`);
         clearTimeout(global.abuseState.mainTimer);
         clearInterval(global.abuseState.intervalRef);
         await stopEvent('manual');
         return;
     }
 
-    // ── !abuseinfo ────────────────────────────────────────
     if (command === 'abuseinfo') {
-        if (!global.abuseState.active) {
-            return msg.reply(
-                `ℹ️ *ADMIN ABUSE EVENT*\n\n` +
-                `Status: 🔴 Tidak Aktif\n\n` +
-                `Ketik *!adminabuseon* untuk mulai.`
-            );
-        }
+        if (!global.abuseState.active) return msg.reply(`ℹ️ Status: 🔴 Tidak Aktif`);
         const sisaMs  = EVENT_DURATION - (Date.now() - global.abuseState.startTime);
         const sisaMnt = Math.ceil(sisaMs / 60000);
         const cur     = (global.abuseState.currentEvent || '-').replace(/_/g, ' ').toUpperCase();
-        return msg.reply(
-            `ℹ️ *ADMIN ABUSE EVENT*\n\n` +
-            `Status: 🟢 Aktif di *${ALL_GROUPS.length} Grup*\n` +
-            `Event sekarang: *${cur}*\n` +
-            `Sisa waktu: *${sisaMnt} menit*\n\n` +
-            `Matikan: *!adminabuseoff*`
-        );
+        return msg.reply(`ℹ️ Status: 🟢 Aktif\nEvent: *${cur}*\nSisa: *${sisaMnt} menit*`);
     }
 };
+
+// --- EKSPOR SEBAGAI SATU PAKET ---
+adminAbuseCmd.handleInteractive = handleInteractive;
+module.exports = adminAbuseCmd;
