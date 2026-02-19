@@ -148,13 +148,19 @@ module.exports = async (command, args, msg, user, db) => {
         const item = args[0].toLowerCase();
         if (!MACHINES[item]) return msg.reply("❌ Mesin tidak ditemukan.");
 
-        const price = MACHINES[item].price;
+        // 🎉 EVENT: Borong Pasar — diskon harga beli
+        const diskonPct = (db.settings?.borongPasar && Date.now() < db.settings.borongPasarUntil)
+            ? db.settings.borongPasarDiskon / 100 : 0;
+        const price = Math.floor(MACHINES[item].price * (1 - diskonPct));
+
         if (user.balance < price) return msg.reply(`❌ Uang kurang! Butuh Rp ${fmt(price)}`);
 
         user.balance -= price;
         user.farm.machines.push(item);
         saveDB(db);
-        return msg.reply(`✅ *SUKSES MEMBELI MESIN*\n${MACHINES[item].name} siap digunakan!\nKetik \`!olah ${item}\` untuk mulai produksi.`);
+        let beliMsg = `✅ *SUKSES MEMBELI MESIN*\n${MACHINES[item].name} siap digunakan!\nKetik \`!olah ${item}\` untuk mulai produksi.`;
+        if (diskonPct > 0) beliMsg += `\n\n🛒 *EVENT BORONG PASAR! Diskon ${db.settings.borongPasarDiskon}%!*`;
+        return msg.reply(beliMsg);
     }
 
     // ============================================================
@@ -369,7 +375,11 @@ module.exports = async (command, args, msg, user, db) => {
 
         if (hargaJual === 0) return msg.reply("❌ Barang tidak laku dijual.");
 
-        const total = hargaJual * qty;
+        // 🎉 EVENT: Musim Panen — hasil jual berlipat
+        const panenMult = (db.settings?.musimPanen && Date.now() < db.settings.musimPanenUntil)
+            ? db.settings.musimPanenMult : 1;
+
+        const total = hargaJual * qty * panenMult;
         user.balance += total;
         user.dailyIncome = (user.dailyIncome || 0) + total;
         user.farm.inventory[item] -= qty;
@@ -377,7 +387,9 @@ module.exports = async (command, args, msg, user, db) => {
         
         saveDB(db);
 
-        return msg.reply(`💰 *TERJUAL*\nBarang: ${item.toUpperCase()} (${qty} Unit)\n💵 Total: Rp ${fmt(total)}`);
+        let jualMsg = `💰 *TERJUAL*\nBarang: ${item.toUpperCase()} (${qty} Unit)\n💵 Total: Rp ${fmt(total)}`;
+        if (panenMult > 1) jualMsg += `\n\n🌾 *EVENT MUSIM PANEN! Hasil x${panenMult}!*`;
+        return msg.reply(jualMsg);
     }
     
     if (command === 'pasar') {
