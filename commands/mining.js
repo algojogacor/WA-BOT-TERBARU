@@ -6,8 +6,8 @@ const fmt = (num) => Math.floor(Number(num)).toLocaleString('id-ID');
 // ============================================================
 // ⚙️ KONFIGURASI UTAMA
 // ============================================================
-const BTC_PER_HASH_HOUR = 0.000155; 
-const ELECTRICITY_COST = 58000; // Rp 58.000 per Hash/Jam
+const BTC_PER_HASH_HOUR = 0.00048125; // Dinaikkan dari 0.000155
+const ELECTRICITY_COST = 15000;       // Diturunkan dari 58.000 agar tidak boncos
 const MAX_OFFLINE_HOURS = 24;
 // DATA HARDWARE
 const HARDWARE = {
