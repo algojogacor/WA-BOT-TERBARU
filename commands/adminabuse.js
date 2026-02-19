@@ -14,14 +14,10 @@ const fmt = (num) => Math.floor(Number(num) || 0).toLocaleString('id-ID');
 //  KONFIGURASI — sesuaikan dengan milikmu
 // ============================================================
 
-// Semua grup whitelist (sama persis dengan ALLOWED_GROUPS di index.js)
+// Whitelist Grup
 const ALL_GROUPS = [
     '120363310599817766@g.us',
-    '6282140693010-1590052322@g.us',
-    '120363253471284606@g.us',
     '120363328759898377@g.us',
-    '120363422854499629@g.us',
-    '120363426746650307@g.us',
 ];
 
 // Owner bot — selalu boleh pakai command ini meski bukan admin grup
