@@ -797,6 +797,11 @@ _Ubah hasil ternak jadi produk premium!_
 • !hack @user : Curi BTC Orang (PvP)
 • !topminer : Ranking Pemilik Bitcoin
 
+🎉 ADMIN ABUSE EVENT SYSTEM  
+• Trigger: !adminabuseon / !adminabuseoff
+• Duration: 30 menit, ganti event tiap 5 menit otomatis
+• 11 Event Random
+
 🏳️ *NEGARA (WAR)*
 • !negara : Cek status & infrastruktur
 • !buatnegara <nama> : Bikin Negara (Biaya 5 Miliar)
@@ -865,6 +870,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
