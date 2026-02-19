@@ -847,17 +847,18 @@ module.exports = async (command, args, msg, user, db, sender) => {
             // Cek apakah semua leg sudah ada hasilnya
             const doneLegs = p.legs.filter(l => l.result !== undefined);
             if (doneLegs.length === p.legs.length) {
+                
                 // Semua leg selesai — tentukan hasil parlay
                 const hasLose = p.legs.some(l => l.result === 'lose');
                 const hasDraw = p.legs.some(l => l.result === 'draw');
 
                 if (hasLose) {
+                    // Jika ada 1 saja yang kalah, parlay hangus (Lose)
                     p.status = 'lost';
-                    // Jangan lupa di-save, tapi TIDAK ADA payout
                 } else if (hasDraw) {
-                    // Recalculate odds tanpa leg draw
+                    // Jika ada yang seri (Draw), odds dari leg yang seri dihapus (dianggap odds 1)
                     const newOdds  = p.legs.filter(l => l.result !== 'draw').reduce((acc, l) => acc * l.odds, 1);
-                    const payout   = Math.floor(p.amount * (newOdds > 1 ? newOdds : 1));
+                    const payout   = Math.floor(p.amount * (newOdds > 1 ? newOdds : 1)); // Minimal balik modal jika semua draw
                     p.status       = 'won';
                     p.actualPayout = payout;
                     if (db.users[p.userId]) db.users[p.userId].balance = (db.users[p.userId].balance || 0) + payout;
@@ -865,16 +866,7 @@ module.exports = async (command, args, msg, user, db, sender) => {
                     winnerCount++;
                     winnerMentions.push(p.userId);
                 } else {
-                    // Semua menang
-                    const payout = p.potential;
-                    p.status     = 'won';
-                    p.actualPayout = payout;
-                    if (db.users[p.userId]) db.users[p.userId].balance = (db.users[p.userId].balance || 0) + payout;
-                    totalPayout += payout;
-                    winnerCount++;
-                    winnerMentions.push(p.userId);
-                } else {
-                    // Semua menang
+                    // Semua leg menang tanpa ada seri (Win Full)
                     const payout = p.potential;
                     p.status     = 'won';
                     p.actualPayout = payout;
@@ -883,7 +875,7 @@ module.exports = async (command, args, msg, user, db, sender) => {
                     winnerCount++;
                     winnerMentions.push(p.userId);
                 }
-            }
+            } // Penutup kurung if (doneLegs.length === p.legs.length)
         }
 
         // Update status match
@@ -950,4 +942,5 @@ module.exports = async (command, args, msg, user, db, sender) => {
         );
     }
 };
+
 
