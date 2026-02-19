@@ -648,191 +648,1178 @@ async function startBot() {
 
 
             // MENU UTAMA
-            if (command === "menu" || command === "help") {
-                const menuText = `📜 *MENU BOT MULTIFUNGSI*
+                        if (command === 'menu' || command === 'help') {
+                const sub  = (args[0] || '').toLowerCase();
+                const bal  = Math.floor(user?.balance || 0).toLocaleString('id-ID');
+                const hp   = user?.hp   ?? 100;
+                const nrg  = user?.energy ?? 100;
+                const lvl  = user?.level  ?? 1;
+                const xp   = (user?.xp   || 0).toLocaleString('id-ID');
 
-👤 *USER & PROFILE*
-• !me | !rank | !inv | !daily | !quest
-• !migrasi @akun_asli (Gabung Akun)
+                // ─── helper bar visual ───────────────────────────
+                const bar = (val, max = 100, len = 8) => {
+                    const fill = Math.round((Math.min(val, max) / max) * len);
+                    return '█'.repeat(Math.max(0, fill)) + '░'.repeat(Math.max(0, len - fill));
+                };
 
-🏦 *BANK & KRIMINAL*
-• !bank : Cek Saldo, Utang & Limit
-• !depo <jml> | !tarik <jml>
-• !tf @user <jml> (Pajak 5%, Limit 10M)
-• !pinjam <jml> (Max 5M, Bunga 20%)
-• !bayar <jml> (Lunasi Utang)
-• !rob @user (Butuh Energi, Denda 10%)
-• !top : Leaderboard Orang Terkaya
+                // ════════════════════════════════════════════════
+                //  MENU UTAMA — !menu
+                // ════════════════════════════════════════════════
+                if (!sub) {
+                    return msg.reply(
+`┌──────────────────────────────┐
+│   ⚙️  *BOT MULTIFUNGSI*  ⚙️   │
+└──────────────────────────────┘
 
-❤️ *LIFE & SURVIVAL*
-_Jaga nyawa! Mati = Saldo lenyap 20%_
-• !me : Cek HP, Lapar & Energi
-• !makan : Bayar 50 Juta
-• !tidur <jam> : Tidur 1-10 jam (Isi Energi)
-• !bangun : Bangun paksa sebelum waktu habis
-• !rs : Berobat (Bayar 500 Juta)
-• !matistatus : Mode AFK (Anti Mati)
-• !nyalastatus : Aktifkan status kembali
+👤 *!menu profil*  — Level, daily, inv, quest, ranking
 
-🚀 *CRYPTO & MINING*
-• !market | !pf | !topcrypto
-• !buycrypto <koin> <jml>
-• !sellcrypto <koin> <jml>
-• !margin | !paydebt
+🏦 *!menu bank*    — Saldo, transfer, pinjam, rob
 
-📈 *PASAR SAHAM BEI*
-• !saham        : Cek harga saham Real-time
-• !belisaham <kode> <jml> : Beli saham
-• !jualsaham <kode> <jml> : Jual saham
-• !pf/!porto           : Cek Portofolio Saham & Aset
-• !chart <Coin> : Melihat  grafik
+❤️ *!menu nyawa*   — HP, makan, tidur, RS, AFK mode
 
-🏢 *BISNIS & PROPERTI*
-• !properti     : Cek katalog & aset kamu
-• !beliusaha <id> <jml> : Beli bisnis baru
-• !collect      : Panen uang dari bisnis
+🎮 *!menu game*    — Casino, slot, roulette, duel, mines
 
-🏭 *FARMING & INDUSTRI*
-• !farming : Panduan Bertani
-• !tanam <nama> : Mulai menanam (Sawit/Kopi/dll)
-• !ladang : Cek kebun & panen
-• !toko : Beli Mesin Pabrik (Gilingan/Roaster/dll)
-• !olah <mesin> <jml> : Masukkan bahan ke pabrik
-• !pabrik : Cek status & ambil hasil olahan
-• !jual <nama> : Jual hasil tani/pabrik
+⚽ *!menu bola*    — Sport betting: 1X2, HDP, O/U, Parlay
 
-🤠 *PETERNAKAN (RANCH)*
-• !ternak : Panduan Ternak
-• !kandang : Cek kondisi hewan (Lapar/Sakit)
-• !belihewan <jenis> : Investasi Sapi/Unta/dll
-• !tokopakan : Beli Pakan & Obat
-• !pakan <no> <jenis> : Beri makan biar gemuk
-• !jualhewan <no> : Panen hewan (Jual daging)
+🌾 *!menu farming* — Pertanian, pabrik, industri
 
+🐄 *!menu ternak*  — Peternakan, pakan, jual hewan
 
-🏭 *Sixteen Industri* 🏭
-_Ubah hasil ternak jadi produk premium!_
+⛏️ *!menu mining*  — VGA rig, BTC, trading crypto
 
-👑 *KHUSUS BOS (OWNER)*
-• 🏭 !pabrik : Cek status pabrik & mesin
-• 🏗️ !bangunpabrik <tipe> : Beli mesin produksi
-• 🤝 !rekrut @tag : Pekerjakan member grup
-• 👢 !pecat @tag : Pecat karyawan
-• 📦 !gudang : Cek stok bahan & produk
-• 💰 !jualproduk <kode> : Jual barang ke pasar
-• 🔧 !service : Perbaiki mesin rusak
-• 💹 !cekpasar : Cek harga jual live
+📈 *!menu investasi*— Saham, valas, emas, properti
 
-👷 *KHUSUS KARYAWAN (BURUH)*
-• 🪪 !pabrik : Cek stamina & majikan
-• ⚙️ !olah <bahan> <jumlah> : Proses produksi
-• 🚪 !resign : Keluar dari pabrik
-📚 *PANDUAN*
-•  📖 !pabrik help : Lihat resep & harga mesin
+💼 *!menu jobs*    — Lowongan, gaji, skill
 
-💼 *PEKERJAAN (JOBS)*
-• !jobs (List Lowongan)
-• !lamar <nama> (Join Job)
-• !kerja (Ambil Gaji)
-• !skill (Kekuatan Khusus)
-• !resign (Keluar)
+🏳️ *!menu negara*  — Buat negara, perang, militer
 
-💱 *INVESTASI VALAS*
-• !kurs       : Cek harga Emas/USD/JPY (Live)
-• !aset       : Cek portofolio tabungan valas
-• !beliemas <gram> : Beli Emas (Safe Haven)
-• !jualemas <gram> : Jual Emas ke Rupiah
-• !beliusd <jml>   : Beli Dollar Amerika
-• !belijpy <jml>   : Beli Yen Jepang
-• !jualusd | !jualjpy : Jual mata uang asing
+🎉 *!menu event*   — Admin Abuse 30 menit 12 event
 
-🎮 *GAMES*
-• !gacha (Jackpot 10k!)
-• !casino <jml> | !slot <jml> | !tembok (Tebak Hal di Belakang Tembok)
-• !tebakgambar | !asahotak | !susunkata
-• !duel @user (Russian Roullete) <bet>
-• !bom <bet> !stop (Minesweeper)
-• !rolet <pilihan> <bet>
-• !catur <bet>
-• !rpg (Turn-based Game) | !claim <kode>
-• !slither | !claimslither <kode>
+🧠 *!menu ai*      — AI tiers, tanya apa saja
+
+🛠️ *!menu tools*   — Stiker, PDF, TTS, steganografi
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 Saldo : *Rp ${bal}*
+❤️ HP    : [${bar(hp)}] ${hp}%
+⚡ Energi: [${bar(nrg)}] ${nrg}%
+🎖️ Level : ${lvl}  |  XP: ${xp}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+_Ketik !menu <kategori> untuk detail_
+_Contoh: !menu game  |  !menu bola_`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu profil
+                // ════════════════════════════════════════════════
+                if (['profil', 'profile', 'akun', 'user'].includes(sub)) {
+                    return msg.reply(
+`👤 *PROFIL & AKUN*
+${'─'.repeat(30)}
+
+📊 *CEK STATUS*
+• !me / !profile      → Profil lengkap (HP, saldo, job, level)
+• !rank               → XP, level & progress naik level
+• !inv / !tas         → Inventory item & buff aktif
+• !quest / !misi      → Misi harian & mingguan
+• !skill              → Skill bonus dari pekerjaanmu
+
+🎁 *KLAIM HARIAN*
+• !daily              → Klaim bonus harian (reset tiap 24 jam)
+• !kerja / !work      → Klaim gaji pekerjaan
+
+🏆 *RANKING*
+• !top / !leaderboard → Top 10 orang terkaya
+• !topbola            → Ranking sport betting
+• !topminer           → Ranking mining BTC
+• !topnegara          → Ranking negara terkuat
+• !dailyrank          → Ranking penghasilan hari ini
+
+🛍️ *TOKO & ITEM*
+• !shop               → Toko buff & item spesial
+• !buy <id>           → Beli item dari toko
+• !use <id>           → Aktifkan/gunakan item
+
+🔗 *AKUN*
+• !migrasi @akun_asli → Pindah data dari nomor lama
+  _(Berguna saat ganti nomor WA)_
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu bank
+                // ════════════════════════════════════════════════
+                if (['bank', 'keuangan', 'duit'].includes(sub)) {
+                    return msg.reply(
+`🏦 *BANK & KEUANGAN*
+${'─'.repeat(30)}
+
+💳 *CEK SALDO & ASET*
+• !me / !bank         → Cek saldo, hutang & info akun
+• !dompet / !coin     → Cek saldo koin saja
+• !pf / !porto        → Portofolio lengkap
+• !aset               → Portofolio aset valas
+
+💸 *TRANSAKSI*
+• !depo <jml>         → Setor saldo ke bank
+• !tarik <jml>        → Tarik saldo dari bank
+• !tf @user <jml>     → Transfer ke user
+                        ⚠️ Pajak 5%, maks 10 Juta/hari
+• !give @user <jml>   → Kirim koin langsung (tanpa pajak)
+
+🏧 *PINJAMAN*
+• !pinjam <jml>       → Pinjam koin (Maks 5 Juta, Bunga 20%)
+• !bayar <jml>        → Lunasi hutang
+• !margin             → Pinjam dana margin (crypto)
+• !paydebt            → Lunasi margin debt
+
+🦹 *KRIMINAL*
+• !rob @user          → Rampok orang lain
+                        ⚠️ Butuh energi, denda 10% jika gagal
+• !maling             → Curi random tanpa target
+
+📊 *RANKING*
+• !top / !leaderboard → Top 10 orang terkaya
+• !dailyrank          → Ranking penghasilan harian
+
+${'─'.repeat(30)}
+⚠️ _Hutang tidak dibayar = saldo dipotong otomatis_
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu nyawa
+                // ════════════════════════════════════════════════
+                if (['nyawa', 'survival', 'life', 'hp'].includes(sub)) {
+                    return msg.reply(
+`❤️ *LIFE & SURVIVAL SYSTEM*
+${'─'.repeat(30)}
+
+📊 *STATUS KAMU SAAT INI*
+• ❤️ HP     : [${bar(hp)}] ${hp}%
+• ⚡ Energi : [${bar(nrg)}] ${nrg}%
+
+📋 *CEK & PANTAU*
+• !me                 → Cek HP, Lapar, Energi & Level
+• !hidupstatus        → Status nyawa detail
+
+⚠️ *MEKANISME BAHAYA*
+┌─────────────────────────────┐
+│ HP ≤ 30%  → ⚠️ Bahaya!     │
+│ HP = 0    → 💀 MATI!        │
+│ Mati      → Saldo -20%      │
+└─────────────────────────────┘
+_HP turun jika kamu lapar & kelelahan_
+
+🍽️ *MAKAN & MINUM*
+• !makan / !eat       → Makan (Biaya 50 Juta, isi lapar & HP)
+
+😴 *ISTIRAHAT*
+• !tidur <jam>        → Tidur 1-10 jam (isi energi & HP)
+• !bangun / !wake     → Bangun paksa sebelum waktu habis
+
+🏥 *PENGOBATAN*
+• !rs                 → Berobat di Rumah Sakit
+                        _(Biaya 500 Juta, HP full seketika)_
+• !revive             → Hidup kembali setelah mati
+
+🔕 *MODE AFK*
+• !matistatus         → Aktifkan mode AFK (HP tidak turun)
+                        _(Gunakan saat mau lama offline)_
+• !nyalastatus        → Matikan mode AFK, aktifkan HP normal
+
+💡 *TIPS BERTAHAN HIDUP*
+✅ Makan & tidur rutin agar HP stabil
+✅ Aktifkan !matistatus sebelum offline lama
+✅ HP di bawah 30%? Langsung ke !rs
+✅ Jangan pernah biarkan HP mencapai 0!
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu game
+                // ════════════════════════════════════════════════
+                if (['game', 'games', 'judi', 'hiburan'].includes(sub)) {
+                    return msg.reply(
+`🎮 *GAMES & JUDI*
+${'─'.repeat(30)}
+
+🎰 *CASINO SOLO*
+• !casino <jml>       → Tebak kartu (35% menang, x2)
+• !slot <jml>         → Mesin slot
+                        Pair 2x = +50% | Jackpot 3x = x75!
+• !rolet <pil> <jml>  → Roulette Eropa (0-36)
+                        Pilihan: merah|hitam|ganjil|genap|0-36
+                        x2 warna/sifat | x15 tebak angka pas
+• !tembok <bet> <1-3> → Tebak di balik 3 tembok (x2.5)
+• !gacha              → Gacha item (200 koin, jackpot 10.000!)
+
+💣 *MINESWEEPER*
+• !bom / !mines <bet> → Mulai Minesweeper (12 kotak, 3 bom)
+• !gali / !open <1-12>→ Buka kotak
+• !stop / !cashout    → Ambil kemenangan & berhenti kapan saja
+  _Makin banyak kotak dibuka = multiplier makin besar!_
+
+⚔️ *PvP (LAWAN PLAYER)*
+• !duel @user <bet>   → Russian Roulette 50:50
+  └ !terima / !tolak  → Respon tantangan duel
+  └ ⚠️ Pajak 10%, duel bonus +2 Juta saat event!
+• !battle @user <bet> → Battle RPG Turn-based
+  └ !terima           → Terima challenge battle
+  └ !nyerah           → Menyerah (kehilangan taruhan)
+
+🧠 *TEBAK BERHADIAH*
+• !tebakgambar        → Tebak gambar dari petunjuk
+• !asahotak           → Tebak kata dari asah otak
+• !susunkata          → Susun huruf acak jadi kata
+  └ !hint             → Minta petunjuk (reward berkurang)
+  └ !nyerah           → Menyerah & lihat jawaban
+
+🕹️ *MINI GAMES (Browser)*
+• !rpg                → RPG turn-based lawan musuh AI
+  └ !claim <kode>     → Klaim reward setelah menang
+• !slither / !snake   → Main Snake Game di browser
+  └ !claimslither <kode> → Klaim skor snake
+• !catur <bet>        → Catur online di browser
 
 ⚽ *SPORT BETTING*
-• !updatebola | !bola | !topbola | !resultbola
-• Fitur: 1X2 | Asian Handicap | Over/Under | Mix Parlay
-  Commands:
-• !bola            — Lihat semua pertandingan aktif
-• !odds <id>       — Detail odds suatu match
-• !bet <id> <jenis> <pilihan> <jumlah>
-  - Pasang taruhan
-    jenis  : 1x2 | hdp | ou
-    pilihan: h/d/a (1x2) | h/a (hdp) | o/u (ou)
-• !parlay <id> <jenis> <pilihan> — Tambah leg ke parlay slip
-• !parlaybet <jumlah>            — Pasang taruhan parlay
-• !parlaylihat                   — Lihat slip parlay sementara
-• !parlaybatal                   — Batal/kosongkan slip
-• !mybets          — Riwayat taruhan kamu
-• !topbola         — Leaderboard
-• !updatebola      — [Admin] Ambil jadwal dari API
-•  !addbola         — [Admin] Tambah match manual
-• !resultbola <id> <skor>  — [Admin] Input hasil (contoh: 2-1)
-• !tutupbola <id>  — [Admin] Tutup taruhan suatu match
-• !hapusbola <id>  — [Admin] Hapus match
+→ Ketik *!menu bola* untuk panduan lengkap
 
-🧠 *AI SUPER TIERS*
-• !ai0 <tanya> (Terbaik namun terbatas)
-• !ai1 <tanya> (Flagship/Smart)
-• !ai2 <tanya> (Roleplay/Asik)
-• !ai3 <tanya> (Speed/Cepat)
-• !ask <tanya> (Auto-Pilot)
-• !sharechat (Buat Link History) 
+📌 _Semua game casino dipengaruhi event Winrate Gila_
+📌 _(Saat event aktif: winrate naik jadi 85%!)_
 
-⛏️ *MINING*
-• !mining : Dashboard, Status Rig & Listrik
-• !panduanminer : 📘 *BACA DULU BIAR GA RUGI!*
-• !claimmining : Panen BTC (Otomatis bayar listrik)
-• !shopminer : Toko VGA Legal (Harga Naik-Turun)
-• !bm : *Black Market* (Alat Ilegal & Kencang)
-• !upgrade : Beli Cooling, PSU & Firewall
-• !hack @user : Curi BTC Orang (PvP)
-• !topminer : Ranking Pemilik Bitcoin
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
 
-🎉 ADMIN ABUSE EVENT SYSTEM  
-• Trigger: !adminabuseon / !adminabuseoff
-• Duration: 30 menit, ganti event tiap 5 menit otomatis
-• 11 Event Random
+                // ════════════════════════════════════════════════
+                //  !menu bola  — Menu utama sportsbook
+                // ════════════════════════════════════════════════
+                if (['bola', 'sport', 'betting', 'parlay'].includes(sub)) {
+                    return msg.reply(
+`⚽ *SPORT BETTING — SPORTSBOOK*
+${'─'.repeat(30)}
 
-🏳️ *NEGARA (WAR)*
-• !negara : Cek status & infrastruktur
-• !buatnegara <nama> : Bikin Negara (Biaya 5 Miliar)
-• !bangun <tipe> : Bank(10M)/Benteng(25M)/RS(5M)
-• !rekrut <jml> : Beli Tentara (50 Juta/orang)
-• !serang @target : Perang Buta (Blind War)
-• !pajaknegara : Tarik pajak dari rakyat
-• !subsidi <jml> : Transfer Uang Pribadi -> Kas
-• !korupsi <jml> : Maling Uang Kas (Awas Kudeta!)
-• !topnegara (Leaderboard)
+📚 *PANDUAN UNTUK PEMULA*
+• *!menu bolaajar*    → 🔰 Apa itu judi bola? (BACA DULU!)
+• *!menu odds*        → 📊 Cara baca odds & hitung untung
+• *!menu 1x2*         → 🎯 Panduan taruhan 1X2 (termudah)
+• *!menu hdp*         → ⚖️ Panduan Asian Handicap
+• *!menu ou*          → 📈 Panduan Over/Under
+• *!menu parlayajar*  → 🎰 Panduan Mix Parlay
 
-📸 *EDITOR & MEDIA*
-• !sticker !toimg (Buat Stiker WA)
-• !topdf (Ubah Gambar ke PDF)
-• !scan (Gambar B&W) 
-• !pdfdone (Selesai & Buat PDF)
-• !tts (text to speech)
-• !img (Image generator)
-• !hide <pesan> (Reply/Kirim Gambar) | !reveal: Munculkan pesan
+${'─'.repeat(30)}
+📋 *COMMAND TARUHAN*
+• !bola               → Daftar semua match aktif
+• !odds <ID>          → Detail odds suatu match
+• !bet <ID> <jenis> <pil> <jml> → Pasang taruhan
+• !parlay <ID> <jenis> <pil>    → Tambah leg parlay
+• !parlaylihat        → Cek slip parlay kamu
+• !parlaybet <jml>    → Pasang parlay
+• !parlaybatal        → Kosongkan slip
+• !mybets             → Riwayat taruhan
+• !topbola            → Leaderboard profit
 
-🕰️ *TIME MACHINE*
-• !timemachine : Lihat arsip chat random masa lalu
-• !timemachine <kode> : Navigasi waktu (Maju/Mundur 1 Jam)
-• !flashback : Kenangan harian pada jam ini
+${'─'.repeat(30)}
+🔧 *ADMIN*
+• !updatebola | !addbola | !resultbola
+• !tutupbola | !hapusbola
 
+_Belum paham? Ketik *!menu bolaajar* dulu!_`
+                    );
+                }
 
-🛠️ *TOOLS & ADMIN*
-• !id (Cek ID Lengkap)
-• !idgrup (Cek ID Grup)`;
-                return msg.reply(menuText);
-            }
+                // ════════════════════════════════════════════════
+                //  !menu bolaajar — Pengenalan judi bola untuk pemula
+                // ════════════════════════════════════════════════
+                if (sub === 'bolaajar') {
+                    return msg.reply(
+`🔰 *PANDUAN JUDI BOLA UNTUK PEMULA*
+${'─'.repeat(30)}
+
+*Apa itu Judi Bola?*
+Kamu menebak hasil pertandingan sepak bola,
+lalu memasang sejumlah uang. Jika tebakanmu
+benar → kamu dapat uang berlipat.
+Jika salah → uang yang dipasang hangus.
+
+${'─'.repeat(30)}
+🎯 *ADA 3 JENIS TARUHAN DI SINI:*
+
+1️⃣ *1X2* (Paling mudah, cocok untuk pemula)
+   → Tebak siapa yang menang/seri
+   → Ketik *!menu 1x2* untuk penjelasan
+
+2️⃣ *Asian Handicap (HDP)* (Menengah)
+   → Sistem voor agar taruhan lebih seimbang
+   → Ketik *!menu hdp* untuk penjelasan
+
+3️⃣ *Over/Under (O/U)* (Menengah)
+   → Tebak total gol lebih banyak atau sedikit
+   → Ketik *!menu ou* untuk penjelasan
+
+🎰 *Mix Parlay* (Lanjutan, potensi besar!)
+   → Gabung beberapa pertandingan sekaligus
+   → Ketik *!menu parlayajar* untuk penjelasan
+
+${'─'.repeat(30)}
+📊 *APA ITU ODDS?*
+Odds = angka pengali kemenanganmu.
+
+Contoh: kamu bet Rp 100.000 dengan odds *1.85*
+→ Jika menang: dapat Rp 100.000 × 1.85 = *Rp 185.000*
+→ Untung bersih: Rp 185.000 - Rp 100.000 = *Rp 85.000*
+→ Jika kalah: Rp 100.000 hangus
+
+Makin besar odds = makin besar untung,
+tapi biasanya makin kecil kemungkinan menang.
+
+→ Ketik *!menu odds* untuk penjelasan lebih dalam
+
+${'─'.repeat(30)}
+⚠️ *PERINGATAN PENTING!*
+❗ Judi bola mengandung risiko kehilangan uang
+❗ Jangan pasang uang yang tidak siap hilang
+❗ Mulai dari taruhan kecil dulu untuk belajar
+
+${'─'.repeat(30)}
+*Navigasi Panduan:*
+• !menu 1x2       → Mulai dari yang termudah
+• !menu odds      → Cara baca odds
+• !menu hdp       → Asian Handicap
+• !menu ou        → Over/Under
+• !menu parlayajar → Mix Parlay
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu odds — Cara baca dan hitung odds
+                // ════════════════════════════════════════════════
+                if (sub === 'odds') {
+                    return msg.reply(
+`📊 *CARA MEMBACA & MENGHITUNG ODDS*
+${'─'.repeat(30)}
+
+*Odds* adalah angka yang menunjukkan berapa
+kali lipat uangmu jika menang.
+
+${'─'.repeat(30)}
+📐 *RUMUS SEDERHANA:*
+
+  💰 Hasil = Taruhan × Odds
+  📈 Untung = Hasil - Taruhan
+
+${'─'.repeat(30)}
+🧮 *CONTOH PERHITUNGAN:*
+
+Pertandingan: *Man City vs Arsenal*
+Odds yang tersedia:
+  🏠 Man City menang : *1.75*
+  🤝 Seri            : *3.50*
+  ✈️ Arsenal menang  : *4.20*
+
+Kamu bet *Rp 200.000* untuk Man City menang:
+  ✅ Jika Man City menang:
+     200.000 × 1.75 = *Rp 350.000*
+     Untung bersih = *+Rp 150.000*
+  ❌ Jika Seri atau Arsenal menang:
+     Uang Rp 200.000 *hangus*
+
+${'─'.repeat(30)}
+🔍 *CARA BACA ODDS — ARTINYA APA?*
+
+  Odds *1.10 - 1.40* → Favorit berat
+  _(Kemungkinan menang besar, untung sedikit)_
+
+  Odds *1.70 - 2.10* → Tim kuat tapi bisa kalah
+  _(Kemungkinan menang lumayan, untung lumayan)_
+
+  Odds *2.50 - 4.00* → Tim seimbang / underdog
+  _(Kemungkinan menang kecil, untung besar)_
+
+  Odds *5.00 ke atas* → Underdog besar
+  _(Jarang menang tapi jika menang = jackpot!)_
+
+${'─'.repeat(30)}
+💡 *TIPS MEMBACA ODDS:*
+✅ Odds rendah (1.xx) = tim lebih diunggulkan
+✅ Odds tinggi (3.xx+) = tim kurang diunggulkan
+✅ Seri selalu punya odds tinggi (~3.40)
+   karena hasil seri lebih jarang terjadi
+✅ Pakai !odds <ID> untuk lihat odds lengkap
+   sebelum memasang taruhan
+
+${'─'.repeat(30)}
+*Lanjut belajar:*
+• !menu 1x2        → Jenis taruhan termudah
+• !menu hdp        → Asian Handicap
+• !menu ou         → Over/Under
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu 1x2 — Panduan taruhan 1X2
+                // ════════════════════════════════════════════════
+                if (sub === '1x2') {
+                    return msg.reply(
+`🎯 *PANDUAN TARUHAN 1X2*
+${'─'.repeat(30)}
+
+*1X2 adalah jenis taruhan PALING MUDAH.*
+Kamu hanya perlu tebak salah satu dari 3:
+  *1* = Tim Home (tuan rumah) menang
+  *X* = Seri / Draw
+  *2* = Tim Away (tamu) menang
+
+${'─'.repeat(30)}
+📋 *CONTOH NYATA:*
+
+Pertandingan: *Liverpool (H) vs Chelsea (A)*
+
+Odds yang muncul di !odds:
+  🏠 Liverpool menang : *1.85*
+  🤝 Seri             : *3.40*
+  ✈️ Chelsea menang   : *4.00*
+
+${'─'.repeat(30)}
+🧮 *SIMULASI TARUHAN Rp 500.000:*
+
+Pilihan A → Liverpool menang (odds 1.85)
+  ✅ Jika Liverpool menang:
+     500.000 × 1.85 = *Rp 925.000*
+     Untung = *+Rp 425.000*
+  ❌ Jika seri/Chelsea menang = hangus
+
+Pilihan B → Seri (odds 3.40)
+  ✅ Jika seri:
+     500.000 × 3.40 = *Rp 1.700.000*
+     Untung = *+Rp 1.200.000*
+  ❌ Jika ada yang menang = hangus
+
+Pilihan C → Chelsea menang (odds 4.00)
+  ✅ Jika Chelsea menang:
+     500.000 × 4.00 = *Rp 2.000.000*
+     Untung = *+Rp 1.500.000*
+  ❌ Jika Liverpool/seri = hangus
+
+${'─'.repeat(30)}
+⌨️ *CARA PASANG TARUHAN 1X2:*
+
+  Misal ID matchnya *LV12*
+  !bet LV12 1x2 h 500000  → Bet Home menang
+  !bet LV12 1x2 d 500000  → Bet Seri
+  !bet LV12 1x2 a 500000  → Bet Away menang
+
+  *h* = Home (tuan rumah)
+  *d* = Draw (seri)
+  *a* = Away (tamu)
+
+${'─'.repeat(30)}
+💡 *STRATEGI UNTUK PEMULA:*
+✅ Pilih tim yang jelas lebih kuat (odds rendah)
+   → Kemungkinan menang lebih besar
+✅ Hindari bet seri jika tidak yakin
+   → Seri paling susah diprediksi
+✅ Jangan bet Away jika odds terlalu tinggi (>5)
+   → Risiko terlalu besar
+
+${'─'.repeat(30)}
+*Lanjut belajar:*
+• !menu hdp        → Asian Handicap
+• !menu ou         → Over/Under
+• !menu parlayajar → Mix Parlay
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu hdp — Panduan Asian Handicap
+                // ════════════════════════════════════════════════
+                if (sub === 'hdp') {
+                    return msg.reply(
+`⚖️ *PANDUAN ASIAN HANDICAP (HDP)*
+${'─'.repeat(30)}
+
+*Handicap* = sistem voor (keunggulan buatan)
+yang diberikan kepada tim yang lebih lemah
+supaya taruhan jadi lebih adil & menarik.
+
+Tim favorit diberi *handicap minus (-)*
+artinya mereka harus menang dengan selisih
+gol tertentu agar kamu bisa menang.
+
+${'─'.repeat(30)}
+🔢 *JENIS-JENIS GARIS HANDICAP:*
+
+*HDP 0 (Pur-pur)*
+→ Tidak ada voor. Jika seri = taruhan refund.
+
+*HDP -0.5 (Home voor 0.5)*
+→ Home harus menang minimal 1 gol.
+   Jika seri → bet Home KALAH, bet Away MENANG
+
+*HDP -1 (Home voor 1)*
+→ Home harus menang minimal 2 gol.
+   Jika Home menang 1-0 → SERI = refund
+   Jika Home menang 2-0 → bet Home MENANG
+
+*HDP -1.5 (Home voor 1.5)*
+→ Home harus menang minimal 2 gol.
+   Tidak ada kemungkinan refund.
+
+*HDP -0.25 (Home voor 0.25)*
+→ Setengah kemenangan/kekalahan berlaku.
+   Jika Seri → bet Home kalah SETENGAH (refund 50%)
+
+${'─'.repeat(30)}
+🧮 *CONTOH PRAKTEK:*
+
+Match: *Real Madrid (H) vs Atletico (A)*
+Odds HDP: Home -1 | Home odds 1.90 | Away odds 1.90
+_(Artinya Real Madrid diunggulkan menang 2 gol+)_
+
+Kamu bet *Rp 200.000* untuk Home (Real Madrid -1):
+
+Skenario hasil pertandingan:
+  Real Madrid menang 3-0 (selisih 3)
+  → -1 sudah terpenuhi ✅ = *MENANG*
+  → Dapat: 200.000 × 1.90 = *Rp 380.000*
+
+  Real Madrid menang 2-1 (selisih 1)
+  → -1 TIDAK terpenuhi ❌ = *KALAH*
+  → Uang hangus
+
+  Real Madrid menang 1-0 (selisih 1 tepat)
+  → Adjusted score: 1-0-1 = 0-0 = SERI
+  → *REFUND* (uang kembali penuh)
+
+  Seri 0-0 atau Away menang
+  → *KALAH*
+
+${'─'.repeat(30)}
+⌨️ *CARA PASANG HANDICAP:*
+
+  !bet LV12 hdp h 200000  → Bet Home (tim unggul/diberi handicap)
+  !bet LV12 hdp a 200000  → Bet Away (tim yang dapat voor)
+
+💡 *TIPS HANDICAP:*
+✅ Bet Away jika kamu pikir tim lemah bisa
+   menahan atau menang melawan tim kuat
+✅ HDP kecil (0 atau 0.25) = risiko lebih aman
+✅ HDP besar (-1.5 ke atas) = butuh selisih gol banyak
+
+${'─'.repeat(30)}
+*Lanjut belajar:*
+• !menu ou         → Over/Under
+• !menu parlayajar → Mix Parlay
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu ou — Panduan Over/Under
+                // ════════════════════════════════════════════════
+                if (sub === 'ou') {
+                    return msg.reply(
+`📈 *PANDUAN OVER/UNDER (O/U)*
+${'─'.repeat(30)}
+
+*Over/Under* = menebak apakah TOTAL GOL
+kedua tim lebih banyak (Over) atau lebih
+sedikit (Under) dari garis yang ditentukan.
+
+Kamu TIDAK perlu tebak siapa yang menang!
+Yang penting total gol sesuai pilihanmu.
+
+${'─'.repeat(30)}
+🔢 *CONTOH GARIS O/U:*
+
+Garis *2.5*:
+  Over  → total gol MINIMAL 3 (✅ jika 3,4,5,6...)
+  Under → total gol MAKSIMAL 2 (✅ jika 0,1,2)
+  _(Tidak mungkin refund di garis .5)_
+
+Garis *3.0*:
+  Over  → total gol MINIMAL 4 (✅ jika 4,5,6...)
+  Under → total gol MAKSIMAL 2 (✅ jika 0,1,2)
+  *Tepat 3 gol → REFUND*
+
+Garis *3.5*:
+  Over  → total gol MINIMAL 4 (✅ jika 4,5,6...)
+  Under → total gol MAKSIMAL 3 (✅ jika 0,1,2,3)
+  _(Tidak mungkin refund di garis .5)_
+
+${'─'.repeat(30)}
+🧮 *CONTOH PRAKTEK:*
+
+Match: *Barcelona vs PSG*
+O/U Line: *2.5* | Over odds: 1.90 | Under odds: 1.90
+
+Kamu bet *Rp 300.000* untuk Over 2.5:
+
+Hasil pertandingan:
+  Skor 2-1 (total 3 gol)   → 3 > 2.5 ✅ = *MENANG*
+  Skor 3-2 (total 5 gol)   → 5 > 2.5 ✅ = *MENANG*
+  Skor 1-1 (total 2 gol)   → 2 < 2.5 ❌ = *KALAH*
+  Skor 0-0 (total 0 gol)   → 0 < 2.5 ❌ = *KALAH*
+  Skor 1-0 (total 1 gol)   → 1 < 2.5 ❌ = *KALAH*
+
+Jika MENANG: 300.000 × 1.90 = *Rp 570.000*
+Untung bersih: *+Rp 270.000*
+
+${'─'.repeat(30)}
+⌨️ *CARA PASANG O/U:*
+
+  !bet LV12 ou o 300000  → Bet Over (banyak gol)
+  !bet LV12 ou u 300000  → Bet Under (sedikit gol)
+
+💡 *TIPS OVER/UNDER:*
+✅ Pertandingan dua tim ofensif → pilih Over
+   (Contoh: PSG vs Man City, Liverpool vs Arsenal)
+✅ Pertandingan defensive → pilih Under
+   (Contoh: Atletico vs Juventus, final piala)
+✅ Garis 2.5 paling populer — paling sering dipakai
+✅ Garis desimal (.5) tidak ada refund, lebih simpel
+
+${'─'.repeat(30)}
+*Lanjut belajar:*
+• !menu parlayajar → Mix Parlay
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu parlayajar — Panduan Mix Parlay
+                // ════════════════════════════════════════════════
+                if (sub === 'parlayajar') {
+                    return msg.reply(
+`🎰 *PANDUAN MIX PARLAY*
+${'─'.repeat(30)}
+
+*Mix Parlay* = menggabungkan BEBERAPA taruhan
+dari pertandingan BERBEDA menjadi 1 tiket.
+
+✅ Semua pilihan HARUS benar untuk menang
+❌ Satu saja salah = SEMUA KALAH
+
+Keunggulannya: Odds DIKALI semua!
+→ Modal kecil bisa untung SANGAT besar!
+
+${'─'.repeat(30)}
+🧮 *CONTOH PERHITUNGAN PARLAY:*
+
+Kamu pilih 3 pertandingan:
+  Match 1: Man City menang   | odds *1.75*
+  Match 2: Over 2.5 gol      | odds *1.90*
+  Match 3: Real Madrid menang | odds *1.80*
+
+Total odds parlay = 1.75 × 1.90 × 1.80 = *5.985*
+
+Modal: *Rp 100.000*
+  ✅ Jika SEMUA 3 benar:
+     100.000 × 5.985 = *Rp 598.500*
+     Untung bersih = *+Rp 498.500*
+  ❌ Jika salah 1 saja:
+     Rp 100.000 *hangus*
+
+${'─'.repeat(30)}
+📈 *POTENSI DENGAN 5 LEG:*
+
+  Odds rata-rata 1.85 per leg:
+  Total odds = 1.85⁵ = *22.18*
+  Modal Rp 100.000 → Dapat *Rp 2.218.000*!
+
+  Odds rata-rata 1.85 per leg (8 leg maksimal):
+  Total odds = 1.85⁸ = *111*
+  Modal Rp 100.000 → Dapat *Rp 11.100.000*!
+
+${'─'.repeat(30)}
+⌨️ *CARA PASANG MIX PARLAY STEP BY STEP:*
+
+*Step 1:* Lihat match yang tersedia
+  → !bola
+
+*Step 2:* Tambah pertandingan ke slip satu per satu
+  → !parlay AB12 1x2 h
+  → !parlay CD34 ou o
+  → !parlay EF56 hdp a
+
+*Step 3:* Cek slip parlay kamu
+  → !parlaylihat
+
+*Step 4:* Jika sudah yakin, pasang taruhan
+  → !parlaybet 100000
+
+*Step 5:* Batal jika berubah pikiran
+  → !parlaybatal
+
+${'─'.repeat(30)}
+📋 *ATURAN MIX PARLAY:*
+• Minimal *2 leg* (2 pertandingan)
+• Maksimal *8 leg* (8 pertandingan)
+• Satu match hanya boleh masuk 1 kali
+• Semua match harus belum dimulai
+• Satu leg draw = leg tersebut dihapus,
+  odds direcalculate dari leg lainnya
+
+${'─'.repeat(30)}
+💡 *STRATEGI PARLAY:*
+✅ Pilih tim favorit jelas (odds 1.70-1.90)
+   → Kemungkinan menang lebih tinggi
+✅ Hindari terlalu banyak leg (8 leg sangat susah)
+   → 2-4 leg = keseimbangan risiko dan reward
+✅ Mix antara 1X2 favorit + Over yang cenderung
+   banyak gol untuk odds yang seimbang
+⚠️ Parlay sangat berisiko — modal bisa hangus!
+   Hanya pasang uang yang siap hilang.
+
+${'─'.repeat(30)}
+*Sudah paham? Langsung coba:*
+• !bola             → Lihat match tersedia
+• !odds <ID>        → Cek odds detail
+• !parlay <ID> <jenis> <pil> → Mulai bangun parlay
+↩️ Balik: *!menu bola*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu farming
+                // ════════════════════════════════════════════════
+                if (['farming', 'tani', 'pertanian', 'pabrik'].includes(sub)) {
+                    return msg.reply(
+`🌾 *FARMING & INDUSTRI*
+${'─'.repeat(30)}
+
+🌱 *PERTANIAN DASAR*
+• !farming / !tani    → Panduan lengkap farming
+• !tanam <nama>       → Mulai menanam
+  Tanaman: padi | jagung | bawang | kopi | sawit
+• !ladang             → Cek status kebun & panen
+• !panen              → Ambil hasil yang sudah matang
+• !pasar              → Cek harga jual komoditas hari ini
+• !jual <nama> <jml>  → Jual hasil panen ke pasar
+  _(Harga pasar berubah tiap waktu!)_
+
+🏭 *MESIN PABRIK (Naikkan Nilai Jual)*
+• !toko               → Daftar mesin + harga
+• !beli <mesin>       → Beli mesin pabrik
+  Contoh mesin:
+  └ gilingan          → Padi jadi Beras
+  └ popcorn_maker     → Jagung jadi Popcorn
+  └ penggorengan      → Bawang jadi Bawang Goreng
+  └ roaster           → Kopi jadi Kopi Premium
+  └ pabrik_minyak     → Sawit jadi Minyak Goreng
+• !olah <mesin> <jml> → Masukkan bahan ke mesin
+• !pabrik             → Cek status & ambil hasil olahan
+• !jual <produk> <jml>→ Jual produk jadi (harga jauh lebih tinggi!)
+
+🏭 *SIXTEEN INDUSTRI (Pabrik Bersama)*
+• !pabrik help        → Panduan sistem industri lengkap
+
+  👑 *Bos (Owner Pabrik)*
+  • !bangunpabrik <hewan> <tier> → Beli mesin
+  • !hire @user                  → Rekrut karyawan
+  • !fire @user                  → Pecat karyawan
+  • !gudang                      → Cek stok bahan & produk
+  • !jualproduk <kode>           → Jual produk ke pasar
+  • !service                     → Perbaiki mesin rusak
+
+  👷 *Karyawan (Buruh)*
+  • !pabrik           → Cek stamina & info majikan
+  • !craft <bahan> <jml> → Proses produksi
+  • !ngopi            → Istirahat & isi stamina
+  • !resign           → Keluar dari pabrik
+
+💡 *TIPS FARMING*
+✅ Sawit = paling menguntungkan, tapi lama
+✅ Mesin pabrik = harga jual naik berkali lipat
+✅ Cek !pasar sebelum jual — harga naik turun!
+✅ Event Musim Panen = hasil jual 3x!
+✅ Event Borong Pasar = beli mesin & benih diskon 50%!
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu ternak
+                // ════════════════════════════════════════════════
+                if (['ternak', 'ranch', 'hewan', 'kandang'].includes(sub)) {
+                    return msg.reply(
+`🐄 *PETERNAKAN (RANCH)*
+${'─'.repeat(30)}
+
+📖 *INFO & KANDANG*
+• !ternak             → Panduan lengkap peternakan
+• !kandang            → Cek kondisi semua hewan
+  _(lapar / sakit / berat / nilai jual)_
+
+🛒 *BELI HEWAN*
+• !belihewan          → Lihat katalog hewan + harga
+• !belihewan <jenis>  → Beli hewan ternak
+  ┌─────────────────────────────────┐
+  │ ayam    •  50rb  → Jual ~180rb  │
+  │ gurame  • 200rb  → Jual ~750rb  │
+  │ kambing •   3jt  → Jual ~6jt    │
+  │ sapi    •  15jt  → Jual ~35jt   │
+  │ unta / kuda      → Tier premium  │
+  └─────────────────────────────────┘
+
+🌿 *PAKAN & PERAWATAN*
+• !tokopakan          → Toko pakan & obat
+• !pakan <no> <jenis> → Beri makan hewan
+  └ dedak   → Murah, tumbuh lambat
+  └ pelet   → Standar, tumbuh sedang
+  └ premium → Mahal, tumbuh cepat!
+• !obati <no>         → Obati hewan sakit
+
+💰 *JUAL HEWAN*
+• !jualhewan <no>     → Jual berdasarkan berat (kg × harga/kg)
+  └ 🌟 Bonus +10% jika berat MAX & hewan sehat
+  └ ☠️ Bangkai = dijual ke rongsok (sangat murah)
+
+⚠️ *PERHATIAN PENTING!*
+❗ Hewan tidak diberi makan lama = MATI
+❗ Hewan sakit = tidak tumbuh optimal
+❗ Maksimal 8 ekor per kandang
+✅ Event Musim Panen = jual hewan 3x harga!
+✅ Event Borong Pasar = beli hewan diskon 50%!
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu mining
+                // ════════════════════════════════════════════════
+                if (['mining', 'tambang', 'btc', 'miner'].includes(sub)) {
+                    return msg.reply(
+`⛏️ *MINING & CRYPTO*
+${'─'.repeat(30)}
+
+⚠️ *WAJIB BACA DULU!*
+→ Ketik *!panduanminer* sebelum mulai mining
+  _(Agar tidak rugi beli alat yang salah)_
+
+⛏️ *MINING BTC*
+• !mining / !miner    → Dashboard rig, hashrate & listrik
+• !claimmining        → Panen BTC (otomatis bayar listrik)
+• !topminer           → Ranking hashrate & BTC terbanyak
+
+🛒 *BELI ALAT MINING*
+• !shopminer          → Toko VGA legal
+  _(Harga naik-turun tiap jam berdasarkan pasar!)_
+• !belivga <kode>     → Beli VGA legal
+  Contoh: !belivga rtx4090
+• !bm / !blackmarket  → Black Market — alat ilegal
+  _(Lebih kencang, tapi ada risiko razia polisi!)_
+
+🔧 *UPGRADE RIG*
+• !upgrade cooling    → Kurangi risiko overheat
+• !upgrade psu        → Hemat listrik 30%
+• !upgrade firewall   → Kebal dari !hack orang lain
+
+⚔️ *PvP MINING*
+• !hack @user         → Curi BTC milik orang
+  _(Perlu Firewall agar tidak bisa di-hack balik!)_
+
+💹 *TRADING CRYPTO*
+• !market             → Harga live semua koin crypto
+• !buycrypto <koin> <jml>  → Beli crypto
+• !sellcrypto <koin> <jml> → Jual crypto
+• !pf / !porto        → Cek portofolio crypto + unrealized P/L
+• !margin             → Pinjam dana trading (leverage)
+• !paydebt            → Bayar margin debt
+
+💡 *TIPS MINING*
+✅ PSU upgrade = hemat listrik 30% (ROI cepat)
+✅ Firewall = wajib jika punya banyak BTC
+✅ Cek !shopminer rutin — harga VGA berubah tiap jam
+✅ Alat illegal lebih kencang tapi bisa disita polisi
+✅ Event Rush Tambang = cooldown 0, hasil 5x, listrik GRATIS!
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu investasi
+                // ════════════════════════════════════════════════
+                if (['investasi', 'saham', 'valas', 'properti'].includes(sub)) {
+                    return msg.reply(
+`📈 *INVESTASI*
+${'─'.repeat(30)}
+
+📊 *PASAR SAHAM BEI*
+• !saham / !stock     → Cek semua harga saham real-time
+• !belisaham <kode> <jml>  → Beli saham
+• !jualsaham <kode> <jml>  → Jual saham
+• !pf / !porto        → Portofolio + unrealized P/L
+• !chart <kode>       → Grafik pergerakan harga saham
+• !dividen            → Klaim dividen (jika ada)
+  _Contoh: !belisaham BBCA 100_
+
+💱 *VALAS & EMAS*
+• !kurs / !forex      → Kurs live: USD, EUR, JPY & Emas
+• !beliemas <gram>    → Beli emas (safe haven, tahan inflasi)
+• !jualemas <gram>    → Jual emas ke rupiah
+• !beliusd <jml>      → Beli Dollar AS
+• !belieur <jml>      → Beli Euro
+• !belijpy <jml>      → Beli Yen Jepang
+• !jualusd / !jualeur / !jualjpy → Jual kembali ke rupiah
+• !aset / !dompetvalas→ Portofolio aset valas + valuasi saat ini
+
+🏢 *PROPERTI & BISNIS*
+• !properti           → Katalog bisnis + aset yang kamu punya
+• !beliusaha <id> <jml> → Beli bisnis / properti baru
+• !collect / !tagih   → Ambil pendapatan pasif dari bisnis
+  _(Bisnis menghasilkan uang tiap jam otomatis!)_
+
+💡 *TIPS INVESTASI*
+✅ Emas = paling aman saat pasar bergejolak
+✅ Saham bisa naik turun drastis — diversifikasi!
+✅ Properti = pendapatan pasif tanpa kerja
+✅ Crypto berisiko tinggi tapi potensi profit besar
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu jobs
+                // ════════════════════════════════════════════════
+                if (['jobs', 'kerja', 'pekerjaan', 'job'].includes(sub)) {
+                    return msg.reply(
+`💼 *PEKERJAAN (JOBS)*
+${'─'.repeat(30)}
+
+📋 *CARI & LAMAR KERJA*
+• !jobs               → Lihat semua lowongan + gaji + skill
+• !lamar <nama>       → Lamar pekerjaan
+  _(Level tertentu membuka pekerjaan bergaji lebih tinggi)_
+• !skill              → Lihat skill aktif dari pekerjaanmu
+
+⏱️ *KERJA HARIAN*
+• !kerja / !work      → Ambil gaji (ada cooldown, sabarlah!)
+
+🚪 *KELUAR KERJA*
+• !resign             → Resign dari pekerjaan saat ini
+  ⚠️ _Resign sebelum gajian = kehilangan gaji periode ini!_
+
+📌 _Setiap pekerjaan punya keuntungan tersendiri:_
+✅ Gaji berkala yang bisa diklaim rutin
+✅ Skill khusus yang memperkuat karakter di game
+✅ Beberapa job beri bonus di mining / farming / duel
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu negara
+                // ════════════════════════════════════════════════
+                if (['negara', 'war', 'perang', 'nation'].includes(sub)) {
+                    return msg.reply(
+`🏳️ *NEGARA & PERANG*
+${'─'.repeat(30)}
+
+🌏 *KELOLA NEGARA*
+• !negara / !nation   → Dashboard negara kamu
+• !buatnegara <nama>  → Buat negara baru
+  _(Biaya 5 Miliar! Pastikan kamu cukup kaya)_
+• !listnegara         → Daftar semua negara yang ada
+• !topnegara          → Ranking negara terkuat
+
+🏗️ *PEMBANGUNAN INFRASTRUKTUR*
+• !bangun bank        → Naikkan kapasitas pajak (10 Juta)
+• !bangun benteng     → Tingkatkan pertahanan (25 Juta)
+• !bangun rs          → Kurangi korban saat perang (5 Juta)
+  _(Infrastruktur kuat = negara lebih sulit diserang)_
+
+⚔️ *MILITER & PERANG*
+• !rekrut <jml>       → Beli tentara (50 Juta/orang)
+• !serang @target     → Deklarasi perang ke negara lain
+  _(Perang buta — kekuatan tentara menentukan hasil)_
+  ⚠️ _Kalah perang = kas negara dirampas musuh!_
+
+💰 *EKONOMI NEGARA*
+• !pajaknegara        → Tarik pajak dari seluruh rakyat
+• !subsidi <jml>      → Transfer uang pribadi → kas negara
+• !korupsi <jml>      → Ambil uang dari kas
+  ⚠️ _Korupsi berlebihan = rakyat memberontak (kudeta)!_
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu event
+                // ════════════════════════════════════════════════
+                if (['event', 'abuse', 'adminabuse'].includes(sub)) {
+                    return msg.reply(
+`🎉 *ADMIN ABUSE EVENT SYSTEM*
+${'─'.repeat(30)}
+
+⚡ *KONTROL EVENT (Admin Grup)*
+• !adminabuseon       → 🟢 Mulai event (berlangsung 30 menit)
+• !adminabuseoff      → 🔴 Matikan paksa event
+• !abuseinfo          → ℹ️ Status event yang sedang aktif
+
+🗓️ *CARA KERJA*
+┌──────────────────────────────┐
+│ ⏱️ Durasi total : 30 menit   │
+│ 🔄 Ganti event  : tiap 5 mnt │
+│ 🎲 Total event  : 12 (acak)  │
+│ 🌐 Scope        : Semua grup │
+└──────────────────────────────┘
+
+📋 *12 EVENT RANDOM*
+ 1. 🌧️ *Hujan Uang*      — Semua dapat koin gratis
+ 2. 🎰 *Jackpot Bersama* — Taruh 50rb, 1 orang menang semua
+ 3. 🛒 *Borong Pasar*    — Diskon 50% semua item & hewan
+ 4. ☄️ *Meteor Langka*   — Ketik *KLAIM* tercepat = hadiah besar
+ 5. 🌾 *Musim Panen*     — Hasil tani & ternak 3x lipat
+ 6. ⛏️ *Rush Tambang*    — Cooldown 0 + hasil 5x + listrik gratis
+ 7. 🎲 *Winrate Gila*    — Casino/Slot/Rolet/Mines winrate 85%!
+ 8. ⚔️ *Duel Berhadiah*  — Menang duel dapat +2 Juta bonus
+ 9. 🧠 *Tebak Berhadiah* — Jawab soal pertama = menang besar
+10. ⚡ *Balapan Klik*    — Ketik kata paling cepat = menang
+11. 📊 *Lomba Aktif*     — Paling banyak chat 5 menit = menang
+12. 👾 *Boss Raid*       — Serang boss dengan *!serang*, reward % damage
+
+📌 _Hanya admin grup yang bisa aktifkan event_
+📌 _Event interaktif: 1 pemenang per grup_
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu ai
+                // ════════════════════════════════════════════════
+                if (['ai', 'tanya', 'bot', 'ask'].includes(sub)) {
+                    return msg.reply(
+`🧠 *AI SUPER TIERS*
+${'─'.repeat(30)}
+
+🤖 *PILIH TIER AI*
+┌────────────────────────────────────┐
+│ !ai0 <tanya> │ 💎 Priority         │
+│              │ Paling pintar tapi  │
+│              │ slot terbatas       │
+├────────────────────────────────────┤
+│ !ai1 <tanya> │ 🧠 Smart/Flagship  │
+│              │ Untuk analisis &    │
+│              │ pertanyaan serius   │
+├────────────────────────────────────┤
+│ !ai2 <tanya> │ 🎭 Roleplay        │
+│              │ Asik, kreatif &     │
+│              │ penuh kepribadian   │
+├────────────────────────────────────┤
+│ !ai3 <tanya> │ ⚡ Speed           │
+│              │ Cepat & ringkas     │
+│              │ untuk hal simple    │
+├────────────────────────────────────┤
+│ !ask <tanya> │ 🚀 Auto-Pilot      │
+│ !ai <tanya>  │ Bot pilih tier      │
+│              │ terbaik otomatis    │
+└────────────────────────────────────┘
+
+🔗 *FITUR LAIN*
+• !sharechat / !history → Buat link share history chat dengan AI
+  _(Berguna untuk share percakapan ke orang lain)_
+
+💡 *REKOMENDASI PENGGUNAAN*
+✅ Pelajaran / tugas   → !ai1 (paling akurat)
+✅ Cerita / roleplay   → !ai2 (paling asik)
+✅ Jawaban cepat       → !ai3 (paling ngebut)
+✅ Tidak tahu tier mana → !ask (auto-pilot)
+✅ Analisis mendalam   → !ai0 (terbatas, hemat!)
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  !menu tools
+                // ════════════════════════════════════════════════
+                if (['tools', 'media', 'editor', 'utilitas'].includes(sub)) {
+                    return msg.reply(
+`🛠️ *TOOLS & EDITOR MEDIA*
+${'─'.repeat(30)}
+
+🖼️ *STIKER & GAMBAR*
+• !sticker            → Ubah gambar/video/GIF jadi stiker WA
+• !toimg              → Ubah stiker jadi gambar biasa
+• !img <deskripsi>    → 🎨 Generate gambar dengan AI
+• !scan               → Ubah gambar jadi hitam-putih (B&W)
+
+📄 *CONVERT KE PDF*
+• !topdf              → Mulai mode convert gambar → PDF
+  _(Kirim gambar satu per satu setelah aktifkan)_
+• !pdfdone            → Selesai & buat file PDF-nya
+  _(File PDF akan dikirim ke chat)_
+
+🔊 *SUARA*
+• !tts <teks>         → Text-to-Speech (teks jadi audio)
+
+🕵️ *STEGANOGRAFI — PESAN TERSEMBUNYI*
+• !hide <pesan>       → Sembunyikan teks di dalam gambar
+  └ Cara: kirim/reply gambar + caption *!hide pesan kamu*
+• !reveal             → Bongkar pesan tersembunyi dari gambar
+  └ Cara: reply gambar yang berisi pesan tersembunyi
+
+🕰️ *TIME MACHINE — ARSIP CHAT*
+• !timemachine        → Buka arsip chat random masa lalu
+• !flashback          → Kenangan chat pada jam ini di masa lalu
+• !dejavu             → Sama seperti !flashback
+• !timemachine <kode> → Navigasi (maju/mundur 1 jam)
+  _(Kode didapat dari hasil !timemachine sebelumnya)_
+
+🆔 *UTILITAS*
+• !id / !cekid        → Cek JID lengkap kamu & grup
+• !idgrup             → Cek ID grup (untuk whitelist bot)
+
+${'─'.repeat(30)}
+↩️ Balik: *!menu*`
+                    );
+                }
+
+                // ════════════════════════════════════════════════
+                //  Sub-menu tidak dikenal → arahkan ke menu utama
+                // ════════════════════════════════════════════════
+                return msg.reply(
+`❓ Kategori *"${sub}"* tidak ditemukan.
+
+Pilihan yang tersedia:
+profil | bank | nyawa | game | bola
+farming | ternak | mining | investasi
+jobs | negara | event | ai | tools
+
+Contoh: *!menu game*  atau  *!menu bola*
+
+Ketik *!menu* untuk menu utama.`
+                );          // ← pastikan ada ) di sini
+            }               // ← tutup blok menu
 
         } catch (e) {
             console.error("Critical Error di Index.js:", e.message);
@@ -870,6 +1857,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
