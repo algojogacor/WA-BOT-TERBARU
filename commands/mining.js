@@ -6,25 +6,28 @@ const fmt = (num) => Math.floor(Number(num)).toLocaleString('id-ID');
 // ============================================================
 // ⚙️ KONFIGURASI UTAMA
 // ============================================================
-const BTC_PER_HASH_HOUR = 0.00000035; 
-const ELECTRICITY_COST = 50; // Rp 50 per Hash/Jam
-const MAX_OFFLINE_HOURS = 24; // 🔥 LIMITER: Maksimal 24 jam (Anti-Bug)
-
+const BTC_PER_HASH_HOUR = 0.000155; 
+const ELECTRICITY_COST = 58000; // Rp 58.000 per Hash/Jam
+const MAX_OFFLINE_HOURS = 24;
 // DATA HARDWARE
 const HARDWARE = {
-    'rtx4070': { name: "🟢 RTX 4070 Ti", basePrice: 20000000, hashrate: 160, type: 'legal' },
-    'rtx4090': { name: "🔵 RTX 4090 OC", basePrice: 50000000, hashrate: 400, type: 'legal' },
-    'dual4090': { name: "🟣 Dual 4090", basePrice: 80000000, hashrate: 640, type: 'legal' },
-    'asic': { name: "🟠 Antminer S19", basePrice: 100000000, hashrate: 800, type: 'legal' },
-    'usb_miner': { name: "🏴‍☠️ USB Miner Hack", basePrice: 5000000, hashrate: 100, type: 'illegal', risk: 0.1 },
-    'quantum_rig': { name: "🏴‍☠️ Quantum Rig", basePrice: 150000000, hashrate: 1500, type: 'illegal', risk: 0.25 }
+    // --- LEGAL HARDWARE ---
+    // Balik modal dalam ~20 jam aktif
+    'rtx4070': { name: "🟢 RTX 4070 Ti", basePrice: 4000000000, hashrate: 160, type: 'legal' }, // Rp 4 Miliar
+    'rtx4090': { name: "🔵 RTX 4090 OC", basePrice: 9500000000, hashrate: 400, type: 'legal' }, // Rp 9,5 Miliar
+    'dual4090': { name: "🟣 Dual 4090", basePrice: 15000000000, hashrate: 640, type: 'legal' }, // Rp 15 Miliar
+    'asic': { name: "🟠 Antminer S19", basePrice: 18000000000, hashrate: 800, type: 'legal' }, // Rp 18 Miliar
+
+    // --- ILLEGAL HARDWARE (BLACK MARKET) ---
+    'usb_miner': { name: "🏴‍☠️ USB Miner Hack", basePrice: 1500000000, hashrate: 100, type: 'illegal', risk: 0.1 }, // Rp 1,5 Miliar
+    'quantum_rig': { name: "🏴‍☠️ Quantum Rig", basePrice: 25000000000, hashrate: 1500, type: 'illegal', risk: 0.25 } // Rp 25 Miliar
 };
 
 // UPGRADES
 const UPGRADES = {
-    'cooling': { name: "❄️ Liquid Cooling", price: 10000000, effect: "Mengurangi risiko Overheat" },
-    'psu': { name: "⚡ Platinum PSU", price: 15000000, effect: "Diskon Listrik 30%" },
-    'firewall': { name: "🛡️ Anti-Hack Firewall", price: 25000000, effect: "Kebal Hacker" }
+    'cooling': { name: "❄️ Liquid Cooling", price: 5000000000, effect: "Mengurangi risiko Overheat" }, // Rp 5 Miliar
+    'psu': { name: "⚡ Platinum PSU", price: 10000000000, effect: "Diskon Listrik 30%" }, // Rp 10 Miliar
+    'firewall': { name: "🛡️ Anti-Hack Firewall", price: 20000000000, effect: "Kebal Hacker" } // Rp 20 Miliar
 };
 
 // ============================================================
