@@ -77,8 +77,15 @@ module.exports = async (command, args, msg, user, db) => {
         let winThreshold = 0.65; // 65% Kalah
         let bonusText = "";
 
-        // Cek Buff Charm
-        if (user.buffs.gacha?.active && now < user.buffs.gacha.until) {
+        // 🎉 EVENT: Winrate Gila (Admin Abuse)
+        const winrateGilaAktif = db.settings?.winrateGila && Date.now() < db.settings.winrateGilaUntil;
+        if (winrateGilaAktif) {
+            winThreshold = 0.15; // 85% Menang!
+            bonusText = "\n🎉 *EVENT WINRATE GILA AKTIF!* (85% Menang)";
+        }
+
+        // Cek Buff Charm (hanya jika event tidak aktif)
+        if (!winrateGilaAktif && user.buffs.gacha?.active && now < user.buffs.gacha.until) {
             winThreshold = 0.50; // Jadi 50%
             bonusText = "\n🍀 *Luck Charm Active!* (Chance Up)";
         }
@@ -116,6 +123,11 @@ module.exports = async (command, args, msg, user, db) => {
         // Manipulasi Buff (Sedikit bantuan kalau punya charm)
         if (user.buffs.gacha?.active && now < user.buffs.gacha.until && Math.random() > 0.6) {
             b = a; 
+        }
+
+        // 🎉 EVENT: Winrate Gila — slot selalu jackpot 3 sama
+        if (db.settings?.winrateGila && Date.now() < db.settings.winrateGilaUntil) {
+            b = a; c = a; // Paksa 3 sama
         }
 
         let resMsg = `🎰 | ${a} | ${b} | ${c} |\n\n`;
