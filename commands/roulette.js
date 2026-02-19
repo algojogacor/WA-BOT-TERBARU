@@ -39,14 +39,35 @@ module.exports = async (command, args, msg, user, db) => {
     saveDB(db);
 
     // --- PUTAR RODA ROULETTE ---
-    // Angka 0-36
-    const resultNum = Math.floor(Math.random() * 37);
+    // 🎉 EVENT: Winrate Gila — paksa hasil sesuai pilihan user (85% chance menang)
+    const winrateGilaAktif = db.settings?.winrateGila && Date.now() < db.settings.winrateGilaUntil;
+    const reds = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+    const blacks = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
+
+    let resultNum;
+    if (winrateGilaAktif && Math.random() < 0.85) {
+        const parsed = parseInt(choice);
+        if (!isNaN(parsed) && parsed >= 0 && parsed <= 36) {
+            resultNum = parsed; // tebak angka → paksa keluar
+        } else if (choice === 'merah' || choice === 'red') {
+            resultNum = reds[Math.floor(Math.random() * reds.length)];
+        } else if (choice === 'hitam' || choice === 'black') {
+            resultNum = blacks[Math.floor(Math.random() * blacks.length)];
+        } else if (choice === 'ganjil' || choice === 'odd') {
+            const ganjil = [1,3,5,7,9,11,13,15,17,19,21,23,25,27,29,31,33,35];
+            resultNum = ganjil[Math.floor(Math.random() * ganjil.length)];
+        } else if (choice === 'genap' || choice === 'even') {
+            const genap = [2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36];
+            resultNum = genap[Math.floor(Math.random() * genap.length)];
+        } else {
+            resultNum = Math.floor(Math.random() * 37);
+        }
+    } else {
+        resultNum = Math.floor(Math.random() * 37); // Normal (non-event atau 15% bad luck)
+    }
     
     // Tentukan Warna & Sifat
-    // 0 = Hijau
-    // Angka Merah: 1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36
-    const reds = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
-    
+    // 0 = Hijau | Angka Merah & Hitam sudah didefinisikan di atas (event block)
     let color = 'hijau'; // Default 0
     let type = 'netral'; // 0 itu bukan ganjil/genap dalam roulette
 
@@ -111,6 +132,7 @@ module.exports = async (command, args, msg, user, db) => {
         txt += `💰 Win Rate: x${multiplier}\n`;
         txt += `💸 Total Dapat: Rp ${finalPrize.toLocaleString('id-ID')}\n`;
         if (multiplier === 15) txt += `🔥 *SULTAN MENDADAK!!* 🔥`;
+        if (winrateGilaAktif) txt += `\n🎉 *EVENT WINRATE GILA AKTIF!*`;
     } else {
         txt += `❌ *ZONK!* Kamu kalah.\n`;
         txt += `💸 Uang Rp ${bet.toLocaleString('id-ID')} dimakan bandar.`;
