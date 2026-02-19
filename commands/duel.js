@@ -1,4 +1,5 @@
 const { saveDB } = require('../helpers/database');
+const fmt = (num) => Math.floor(Number(num) || 0).toLocaleString('id-ID');
 
 // Penyimpanan sementara tantangan duel (di memori RAM saja)
 // Format: { 'id_penantang': { target: 'id_lawan', amount: 1000, time: 123456 } }
@@ -81,27 +82,33 @@ module.exports = async (command, args, msg, user, db) => {
         const tax = Math.floor(amount * 0.1); // Pajak 10% buat Admin/Bot (Biar deflasi)
         const winAmount = amount - tax; // Pemenang dapat uang lawan dikurangi pajak
 
+        // 🎉 EVENT: Duel Berhadiah — bonus koin ekstra untuk pemenang
+        const duelBonus = (db.settings?.duelBonus && Date.now() < db.settings.duelBonusUntil)
+            ? db.settings.duelBonus : 0;
+
         let txt = `🔫 *DORRR!!!* Suara tembakan terdengar...\n\n`;
 
         if (isChallengerWin) {
             // Penantang Menang
-            challengerUser.balance += winAmount; // Dapat uang lawan (minus pajak)
+            challengerUser.balance += winAmount + duelBonus;
             user.dailyIncome = (user.dailyIncome || 0) + winAmount;
-            user.balance -= amount;              // Target kehilangan uang full
+            user.balance -= amount;
             
             txt += `💀 @${senderId.split('@')[0]} rubuh bersimbah darah!\n`;
             txt += `🏆 @${challengerId.split('@')[0]} MENANG!\n\n`;
             txt += `💰 Profit: +Rp ${winAmount.toLocaleString('id-ID')}\n`;
             txt += `💸 Pajak Preman: Rp ${tax.toLocaleString('id-ID')}`;
+            if (duelBonus > 0) txt += `\n🎉 *EVENT Duel Berhadiah! +Rp ${fmt(duelBonus)} Bonus!*`;
         } else {
             // Target Menang
-            user.balance += winAmount;           // Target dapat uang lawan (minus pajak)
-            challengerUser.balance -= amount;    // Penantang kehilangan uang full
+            user.balance += winAmount + duelBonus;
+            challengerUser.balance -= amount;
 
             txt += `💀 @${challengerId.split('@')[0]} senjata meledak di tangan!\n`;
             txt += `🏆 @${senderId.split('@')[0]} MENANG!\n\n`;
             txt += `💰 Profit: +Rp ${winAmount.toLocaleString('id-ID')}\n`;
             txt += `💸 Pajak Preman: Rp ${tax.toLocaleString('id-ID')}`;
+            if (duelBonus > 0) txt += `\n🎉 *EVENT Duel Berhadiah! +Rp ${fmt(duelBonus)} Bonus!*`;
         }
 
         // Hapus data duel
