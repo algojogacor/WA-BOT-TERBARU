@@ -232,18 +232,29 @@ module.exports = async (command, args, msg, user, db, sock) => {
     if (command === 'claimmining') {
         if (totalHash === 0) return msg.reply("❌ Gak punya alat.");
         
+        // 🎉 EVENT: Rush Tambang (Admin Abuse)
+        const rushAktif = db.settings?.rushTambang && Date.now() < db.settings.rushTambangUntil;
+
         let diffHours = (now - user.mining.lastClaim) / (1000 * 60 * 60);
         
         // 🔥 LOGIKA ANTI BUG TRILIUN DI SINI JUGA 🔥
         if (diffHours > MAX_OFFLINE_HOURS) diffHours = MAX_OFFLINE_HOURS;
         
-        if (diffHours < 0.01) return msg.reply(`⏳ Sabar, mesin baru jalan.`);
+        // Saat Rush Tambang: skip cooldown (minimal 0.01 jam tidak berlaku)
+        if (!rushAktif && diffHours < 0.01) return msg.reply(`⏳ Sabar, mesin baru jalan.`);
+        if (rushAktif && diffHours < 0.01) diffHours = 0.01; // minimal agar ada hasil
 
         let earnedBTC = (totalHash * BTC_PER_HASH_HOUR * diffHours);
         let elecBill = totalHash * ELECTRICITY_COST * diffHours;
         if (user.mining.upgrades.psu) elecBill *= 0.7;
 
-        if (user.balance < elecBill) {
+        // 🎉 EVENT: Rush Tambang — hasil 5x, listrik gratis
+        if (rushAktif) {
+            earnedBTC *= 5;
+            elecBill   = 0;
+        }
+
+        if (!rushAktif && user.balance < elecBill) {
             return msg.reply(`⚠️ *GAGAL KLAIM!*\nListrik: Rp ${fmt(elecBill)}\nSaldo: Rp ${fmt(user.balance)}\n\nBayar listrik dulu bos!`);
         }
 
@@ -252,7 +263,9 @@ module.exports = async (command, args, msg, user, db, sock) => {
         user.mining.lastClaim = now;
         saveDB(db);
 
-        return msg.reply(`✅ *PANEN SUKSES*\n+ ${earnedBTC.toFixed(8)} BTC\n- Rp ${fmt(elecBill)} (Listrik)`);
+        let claimMsg = `✅ *PANEN SUKSES*\n+ ${earnedBTC.toFixed(8)} BTC\n- Rp ${fmt(elecBill)} (Listrik)`;
+        if (rushAktif) claimMsg += `\n\n⛏️ *EVENT RUSH TAMBANG! Hasil 5x, Listrik Gratis!*`;
+        return msg.reply(claimMsg);
     }
 
     // ============================================================
