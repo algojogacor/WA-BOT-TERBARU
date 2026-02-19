@@ -35,8 +35,12 @@ module.exports = async (command, args, msg, user, db) => {
         saveDB(db);
 
         // Generate Posisi Bom
+        // 🎉 EVENT: Winrate Gila — jumlah bom dikurangi dari 3 jadi 1
+        const winrateGilaAktif = db.settings?.winrateGila && Date.now() < db.settings.winrateGilaUntil;
+        const totalBom = winrateGilaAktif ? 1 : 3;
+
         const bombs = [];
-        while (bombs.length < 3) {
+        while (bombs.length < totalBom) {
             const r = Math.floor(Math.random() * 12) + 1;
             if (!bombs.includes(r)) bombs.push(r);
         }
@@ -50,8 +54,9 @@ module.exports = async (command, args, msg, user, db) => {
         };
 
         let txt = `💣 *TEBAK BOM DIMULAI* 💣\n`;
-        txt += `💰 Taruhan: Rp ${bet.toLocaleString('id-ID')}\n\n`;
-        txt += `📦 *PILIH KOTAK (1-12)*:\n`;
+        txt += `💰 Taruhan: Rp ${bet.toLocaleString('id-ID')}\n`;
+        if (winrateGilaAktif) txt += `🎉 *EVENT WINRATE GILA! Hanya ${totalBom} Bom!*\n`;
+        txt += `\n📦 *PILIH KOTAK (1-12)*:\n`;
         txt += `[1] [2] [3] [4]\n[5] [6] [7] [8]\n[9] [10] [11] [12]\n\n`;
         txt += `⚠️ Ada *3 BOM* tersembunyi.\n`;
         txt += `💡 *Fitur Asuransi:* Jika sudah buka 3 kotak lalu meledak, kamu tetap dapat sebagian uang!\n`;
