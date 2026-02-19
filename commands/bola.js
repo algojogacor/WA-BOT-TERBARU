@@ -26,9 +26,9 @@ const { saveDB } = require('../helpers/database');
 
 // ── Konfigurasi ─────────────────────────────────────────────
 const API_KEY      = '895c3efd0c964d1dacb5c3e5bc2027f0';
-const ADMIN_ID     = '244203384742140@lid';
-const MIN_BET      = 1000;
-const MAX_BET      = 50000000;
+const ADMIN_ID = ['244203384742140@lid', '251049612955654@lid'];
+const MIN_BET      = 1000000;
+const MAX_BET      = 9999999999999999999999999999999999;
 const MAX_PARLAY   = 8;   // Maksimal kaki parlay
 const MIN_PARLAY   = 2;   // Minimal kaki parlay
 
@@ -174,7 +174,7 @@ module.exports = async (command, args, msg, user, db, sender) => {
     initDB(db);
     const sb      = db.sportsbook;
     const senderId = msg.author || msg.key?.participant || msg.key?.remoteJid || sender;
-    const isAdmin  = senderId === ADMIN_ID;
+    const isAdmin  = ADMIN_ID.includes(senderId); 
     const now      = Date.now();
 
     const validCmds = [
@@ -853,11 +853,21 @@ module.exports = async (command, args, msg, user, db, sender) => {
 
                 if (hasLose) {
                     p.status = 'lost';
+                    // Jangan lupa di-save, tapi TIDAK ADA payout
                 } else if (hasDraw) {
                     // Recalculate odds tanpa leg draw
                     const newOdds  = p.legs.filter(l => l.result !== 'draw').reduce((acc, l) => acc * l.odds, 1);
                     const payout   = Math.floor(p.amount * (newOdds > 1 ? newOdds : 1));
                     p.status       = 'won';
+                    p.actualPayout = payout;
+                    if (db.users[p.userId]) db.users[p.userId].balance = (db.users[p.userId].balance || 0) + payout;
+                    totalPayout += payout;
+                    winnerCount++;
+                    winnerMentions.push(p.userId);
+                } else {
+                    // Semua menang
+                    const payout = p.potential;
+                    p.status     = 'won';
                     p.actualPayout = payout;
                     if (db.users[p.userId]) db.users[p.userId].balance = (db.users[p.userId].balance || 0) + payout;
                     totalPayout += payout;
@@ -940,3 +950,4 @@ module.exports = async (command, args, msg, user, db, sender) => {
         );
     }
 };
+
