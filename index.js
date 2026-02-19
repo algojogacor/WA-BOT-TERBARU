@@ -21,6 +21,7 @@ const { connectToCloud, loadDB, saveDB, addQuestProgress } = require('./helpers/
 // --- IMPORT COMMANDS ---
 const timeMachineCmd = require('./commands/timemachine');
 const economyCmd = require('./commands/economy');
+const adminAbuseCmd = require('./commands/adminabuse');
 const jobsCmd = require('./commands/jobs');
 const chartCmd = require('./commands/chart');
 const propertyCmd = require('./commands/property');
@@ -232,6 +233,12 @@ async function startBot() {
             const body = m.message.conversation ||
                 m.message.extendedTextMessage?.text ||
                 m.message.imageMessage?.caption || "";
+            
+             // ── ADMIN ABUSE INTERACTIVE ──
+            if (isGroup) {
+                await adminAbuseCmd.handleInteractive(body, sender, remoteJid, global.db)
+                    .catch(e => console.error('Error AdminAbuse Interactive:', e.message));
+            }
 
             if (body) console.log(`📨 PESAN DARI ${pushName}: ${body.slice(0, 30)}...`);
 
@@ -491,6 +498,7 @@ async function startBot() {
             if (!isCommand) return;
 
             await ternakCmd(command, args, msg, user, db).catch(e => console.error("Error Ternak:", e.message));
+            await adminAbuseCmd(command, args, msg, user, db, sock).catch(e => console.error('Error AdminAbuse:', e.message));
             await toolsCmd(command, args, msg, user, db, sock).catch(e => console.error("Error Tools:", e.message));
             await timeMachineCmd(command, args, msg, user, db, sock);
             await devCmd(command, args, msg, user, db, sock).catch(e => console.error("Error Dev:", e.message));
@@ -838,6 +846,7 @@ async function handleExit(signal) {
 // Tangkap sinyal mematikan dari Koyeb/Terminal
 process.on('SIGINT', () => handleExit('SIGINT'));
 process.on('SIGTERM', () => handleExit('SIGTERM'));
+
 
 
 
