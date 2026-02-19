@@ -223,12 +223,18 @@ module.exports = async (command, args, msg, user, db) => {
         }
 
         if (user.ternak.length >= 8) return msg.reply("❌ Kandang penuh (Max 8 ekor).");
-        if (user.balance < ANIMALS[type].price) return msg.reply("❌ Uang kurang.");
+
+        // 🎉 EVENT: Borong Pasar — diskon harga beli hewan
+        const diskonPct = (db.settings?.borongPasar && Date.now() < db.settings.borongPasarUntil)
+            ? db.settings.borongPasarDiskon / 100 : 0;
+        const hargaBeli = Math.floor(ANIMALS[type].price * (1 - diskonPct));
+
+        if (user.balance < hargaBeli) return msg.reply("❌ Uang kurang.");
 
         // Start weight 10%
         const startWeight = ANIMALS[type].maxWeight * 0.1;
 
-        user.balance -= ANIMALS[type].price;
+        user.balance -= hargaBeli;
         user.ternak.push({ 
             type, 
             weight: startWeight, 
@@ -237,7 +243,9 @@ module.exports = async (command, args, msg, user, db) => {
         });
         
         saveDB(db);
-        return msg.reply(`✅ Berhasil membeli ${ANIMALS[type].name}.`);
+        let beliMsg = `✅ Berhasil membeli ${ANIMALS[type].name}.`;
+        if (diskonPct > 0) beliMsg += `\n🛒 *EVENT BORONG PASAR! Diskon ${db.settings.borongPasarDiskon}%!*`;
+        return msg.reply(beliMsg);
     }
 
     // ============================================================
@@ -335,14 +343,19 @@ module.exports = async (command, args, msg, user, db) => {
         }
 
         // Jual Normal
-        const total = Math.floor(animal.weight * conf.sellPrice);
+        const baseTotal = Math.floor(animal.weight * conf.sellPrice);
         
         // Bonus jika sehat & berat max
         let bonus = 0;
         if (animal.weight >= conf.maxWeight && !animal.isSick) {
-            bonus = total * 0.1; // Bonus 10%
+            bonus = baseTotal * 0.1; // Bonus 10%
         }
 
+        // 🎉 EVENT: Musim Panen — hasil jual berlipat
+        const panenMult = (db.settings?.musimPanen && Date.now() < db.settings.musimPanenUntil)
+            ? db.settings.musimPanenMult : 1;
+
+        const total      = baseTotal * panenMult;
         const finalPrice = total + bonus;
         user.balance += finalPrice;
         user.dailyIncome = (user.dailyIncome || 0) + finalPrice;
@@ -350,6 +363,7 @@ module.exports = async (command, args, msg, user, db) => {
         saveDB(db);
 
         let msgBonus = bonus > 0 ? `\n🌟 *Bonus Kualitas Terbaik: +Rp ${fmt(bonus)}*` : "";
-        return msg.reply(`💰 *TERJUAL*\n${conf.name} (Berat ${animal.weight.toFixed(2)}kg)\n💵 Harga Dasar: Rp ${fmt(total)}${msgBonus}\n🤑 *Total Diterima: Rp ${fmt(finalPrice)}*`);
+        let panenInfo = panenMult > 1 ? `\n🌾 *EVENT MUSIM PANEN! Hasil x${panenMult}!*` : "";
+        return msg.reply(`💰 *TERJUAL*\n${conf.name} (Berat ${animal.weight.toFixed(2)}kg)\n💵 Harga Dasar: Rp ${fmt(total)}${msgBonus}\n🤑 *Total Diterima: Rp ${fmt(finalPrice)}*${panenInfo}`);
     }
 };
